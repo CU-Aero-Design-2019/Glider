@@ -43,19 +43,19 @@ PID::~PID()
 /**
  * Implementation
  */
-PIDImpl::PIDImpl( double dt, double max, double min, double Kp, double Kd, double Ki ) :
-    if(dt <= 0.0)
-		throw std::exception("Impossible to create a PID regulator with a 0 or negative loop interval time.");
-	_dt(dt),
-    _max(max),
-    _min(min),
-    _Kp(Kp),
-    _Kd(Kd),
-    _Ki(Ki),
-    _pre_error(0),
-    _integral(0)
-{
-}
+//PIDImpl::PIDImpl( double dt, double max, double min, double Kp, double Kd, double Ki ) :
+//    if(dt <= 0.0)
+//		throw std::exception("Impossible to create a PID regulator with a 0 or negative loop interval time.");
+//	_dt(dt),
+//    _max(max),
+//    _min(min),
+//    _Kp(Kp),
+//    _Kd(Kd),
+//    _Ki(Ki),
+//    _pre_error(0),
+//    _integral(0)
+//{
+//}
 
 double PIDImpl::calculate( double setpoint, double pv )
 {

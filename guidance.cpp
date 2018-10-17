@@ -1,5 +1,5 @@
 #include "guidance.h"
 
-void xyUpdate(&FlightState current, cardinalPos target,){
+//void xyUpdate(FlightState &current, cardinalPos target,){
   
-}
+//}

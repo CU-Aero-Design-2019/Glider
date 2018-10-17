@@ -28,8 +28,11 @@ void setup(){
     // IMU setup
     SpecMPU6050::setup();
 
+delay(2000);
+
     // load settings from EEPROM
     Settings::loadSettings();
+
 }
 
 void loop(){
@@ -37,10 +40,10 @@ void loop(){
     
     receiver.update();
 
-    if(millis() - SpecMPU6050::IMUUpdateTimer > 1000/SpecMPU6050::IMUUpdatePeriod){
+    if(millis() - SpecMPU6050::UpdateTimer > 1000/SpecMPU6050::UpdatePeriod){
         SpecMPU6050::update();
         //Serial.println(IMU::rawGyroX);
-        SpecMPU6050::IMUUpdateTimer = millis();
+        SpecMPU6050::UpdateTimer = millis();
     }
     
 
