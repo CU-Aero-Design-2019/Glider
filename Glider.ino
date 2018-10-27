@@ -15,6 +15,7 @@
 //#include "guidance.h"
 #include "Leveling.h"
 
+
 void setup(){
     pinMode(PA4, INPUT);
 
@@ -60,6 +61,12 @@ void loop(){
         //Serial.println(receiver.readChannel(3));
         receiver.receiverUpdateTimer = millis();
     }
+	
+	if(millis() - SpecGPS::UpdateTimer > 1000/SpecGPS::UpdatePeriod){
+        SpecGPS::update();
+        SpecGPS::UpdateTimer = millis();
+    }
+
 
     float batteryVoltage = analogRead(PA4)*3.3*1.47/4095.0;
     if(batteryVoltage < 3.7){

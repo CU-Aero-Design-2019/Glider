@@ -4,16 +4,36 @@
 #include <Servo.h>
 #include "SpecMPU6050.h"
 
+#include "pid.h"
+
 namespace Leveling{
 
     const long UpdatePeriod = 100;
+	const float UpdateFreq = .01;
     long UpdateTimer = 0;
+	
+	const int ServoMax = 170;
+	const int ServoMin = 10;
+	
+	const float MaxPitchAngle = 60;
+	const float MinPitchAngle = -80;
+	const float pitchKp = 2;
+	const float pitchKd = 0;
+	const float pitchKi = .3;
+	
+	const float MaxRollAbs = 60;
+	const float rollKp = 2;
+	const float rollKd = 0;
+	const float rollKi = .3;
 
     Servo lServo;
     Servo rServo;
 
     float pitchError;
     float rollError;
+	
+	PID pitchPID = PID(UpdateFreq, MaxPitchAngle, MinPitchAngle, pitchKp, pitchKd, pitchKi);
+	PID rollPID = PID(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
 
     void setup(){
         lServo.attach(PB1);
@@ -28,36 +48,34 @@ namespace Leveling{
 
         float rollAngle = SpecMPU6050::angleX;
         float pitchAngle = SpecMPU6050::angleY;
-
-        // error is the number of degrees we want to move to return to level
-        pitchError = -pitchAngle;
-        rollError = -rollAngle;
-
-        // Serial.println(SpecMPU6050::angleX);
-        // Serial.println(SpecMPU6050::angleY);
-        // Serial.println();
-
-        int lServoOutput = 90 - rollError + pitchError;
-        int rServoOutput = 90 - rollError - pitchError;
+		
+		float pitchOutput;
+		float rollOutput;
         
-        if(lServoOutput > 170){
-            lServo.write(170);
-        }else if(lServoOutput < 10){
-            lServo.write(10);
+        pitchOutput = pitchPID.calculate(0,pitchAngle);
+		rollOutput = rollPID.calculate(0,rollAngle);
+		//Serial.println(pitchOutput);
+		//Serial.println(rollOutput);
+		
+		int lServoOutput = 90 - rollOutput + pitchOutput;
+        int rServoOutput = 90 - rollOutput - pitchOutput;
+		
+		 if(lServoOutput > ServoMax){
+            lServo.write(ServoMax);
+        }else if(lServoOutput < ServoMin){
+            lServo.write(ServoMin);
         } else {
             lServo.write(lServoOutput);
         }
-
-        if(lServoOutput > 170){
-            rServo.write(170);
-        }else if(lServoOutput < 10){
-            rServo.write(10);
+		
+		if(lServoOutput > ServoMax){
+            rServo.write(ServoMax);
+        }else if(lServoOutput < ServoMin){
+            rServo.write(ServoMin);
         } else {
             rServo.write(rServoOutput);
         }
-        
-        
-        
+        //Serial.println();
     }
 
 };
