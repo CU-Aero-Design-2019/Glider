@@ -2,8 +2,8 @@
 #define PINS_H
 
 //servos
-#define LServo PB0
-#define RServo PB1
+#define LServo PB1
+#define RServo PB0
 
 //serials
 

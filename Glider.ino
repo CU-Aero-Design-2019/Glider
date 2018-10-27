@@ -2,9 +2,8 @@
 // General rules:
 //     Never use delay()s.
 //     Tabs or 4 spaces (go into arduino settings and check "use external editor" then use a real text editor)
-//     put exactly half of the open braces on new lines and the other half on the same line where it belongs
 
-#define DEBUG
+//#define DEBUG
 
 #include "settings.h"
 #include <Servo.h>
@@ -13,9 +12,14 @@
 #include <SpecGPS.h>
 #include <SpecMPU6050.h>
 #include <SpecIBUS.h>
-#include "guidance.h"
+//#include "guidance.h"
+#include "Leveling.h"
 
 void setup(){
+    pinMode(PA4, INPUT);
+
+    pinMode(LED_BUILTIN, OUTPUT);
+
     // GPS setup
     SpecGPS::setup();
 
@@ -28,11 +32,13 @@ void setup(){
     // IMU setup
     SpecMPU6050::setup();
 
-delay(2000);
+    Leveling::setup();
+
+    //delay(2000);
 
     // load settings from EEPROM
     Settings::loadSettings();
-
+    
 }
 
 void loop(){
@@ -42,14 +48,27 @@ void loop(){
 
     if(millis() - SpecMPU6050::UpdateTimer > 1000/SpecMPU6050::UpdatePeriod){
         SpecMPU6050::update();
-        //Serial.println(IMU::rawGyroX);
         SpecMPU6050::UpdateTimer = millis();
     }
     
+    if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
+        Leveling::update();
+        Leveling::UpdateTimer = millis();
+    }
 
     if(millis() - receiver.receiverUpdateTimer > 1000/receiver.receiverUpdatePeriod){
         //Serial.println(receiver.readChannel(3));
         receiver.receiverUpdateTimer = millis();
     }
+
+    float batteryVoltage = analogRead(PA4)*3.3*1.47/4095.0;
+    if(batteryVoltage < 3.7){
+        digitalWrite(LED_BUILTIN, HIGH);
+    } else {
+        digitalWrite(LED_BUILTIN, LOW);
+    }
+    //Serial.print("Battery Voltage: ");
+    //Serial.println(batteryVoltage, 4);
+    //delay(10);
     
 }
