@@ -5,21 +5,15 @@
 
 //#define DEBUG
 
-
-
 #include "settings.h"
 #include <Servo.h>
-//Global outputs	
-Servo lServo;
-Servo rServo;
-#include "constants.h"
+#include "globals.h"
 #include "USB.h"
 #include <SpecGPS.h>
 #include <SpecMPU6050.h>
 #include <SpecIBUS.h>
-//#include "guidance.h"
 #include "Leveling.h"
-
+#include "bluetooth.h"
 
 
 void setup(){
@@ -34,24 +28,29 @@ void setup(){
     USB::setup();
 
     // Receiver setup
-    receiver.setup(Serial3);
+    //receiver.setup(Serial3);
 
     // IMU setup
     SpecMPU6050::setup();
 
     Leveling::setup();
 
-    
-
     // load settings from EEPROM
     Settings::loadSettings();
+
+
+    Bluetooth::setup();
+    
+
     
 }
 
 void loop(){
     USB::update();
+
+    Bluetooth::update();
     
-    receiver.update();
+    //receiver.update();
 
     if(millis() - SpecMPU6050::UpdateTimer > 1000/SpecMPU6050::UpdatePeriod){
         SpecMPU6050::update();
@@ -80,8 +79,5 @@ void loop(){
     } else {
         digitalWrite(LED_BUILTIN, LOW);
     }
-    //Serial.print("Battery Voltage: ");
-    //Serial.println(batteryVoltage, 4);
-    //delay(10);
     
 }

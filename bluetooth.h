@@ -1,12 +1,12 @@
-#ifndef USB_H
-#define USB_H
+#ifndef BLUETOOTH_H
+#define BLUETOOTH_H
 
-#include "globals.h"
-#include "settings.h"
+//#define DEBUG
+
+#include "USB.h"
 #include "serialParse.h"
 
-// struct to hold serial communication stuff
-namespace USB{
+namespace Bluetooth{
 
     String incoming = "";
     bool waitingForSerialDelay = false;
@@ -14,27 +14,25 @@ namespace USB{
     const int serialDelay = 10;
 
     void setup(){
-        Serial.begin(USBSerialBaudrate);
+        Serial3.begin(115200);
     }
 
-    // to be called at a regular interval
-    // updates incoming string
     void update(){
-        //parse serial1 input
-        if(Serial.available() && !waitingForSerialDelay){
+        //parse bluetooth serial input
+        if(Serial3.available() && !waitingForSerialDelay){
             waitingForSerialDelay = true;
             firstSerialAvailableTime = millis();
         }
         // if serial has something available and we've waited serialDelay
-        if(waitingForSerialDelay && (firstSerialAvailableTime + serialDelay >= millis())){
+        if(waitingForSerialDelay && ((firstSerialAvailableTime + serialDelay) <= millis())){
             // set this pesky thing back to false since we're not waiting anymore
             waitingForSerialDelay = false;
             incoming = "";
-            while(Serial.available()){
-                incoming += (char)Serial.read();
+            while(Serial3.available()){
+                incoming += (char)Serial3.read();
             }
             #ifdef DEBUG
-            Serial.print("Incoming USB Serial Data: ");
+            Serial.print("Incoming BT Serial Data: ");
             Serial.println(incoming);
             #endif
             // do something with serial input
@@ -42,9 +40,6 @@ namespace USB{
         }
     }
 
-    
-
 };
-
 
 #endif
