@@ -22,10 +22,14 @@ namespace USB{
     void parse(){
         if(incoming.substring(0, 4).equals("STAR")){
             Settings::setTarget("implementme!", "implementme!", "implementme!");
-        }else if(incoming.substring(0, 4).equals("SRVO")){
-            Serial.println(incoming.substring(4));
-            Serial.println(incoming.substring(4).toInt());
-            //testServo.write(incoming.substring(4).toInt());
+        }else if(incoming.substring(0, 5).equals("SRVOR")){
+            Serial.println(incoming.substring(5));
+            Serial.println(incoming.substring(5).toInt());
+            rServo.write(incoming.substring(5).toInt());
+        }else if(incoming.substring(0, 5).equals("SRVOL")){
+            Serial.println(incoming.substring(5));
+            Serial.println(incoming.substring(5).toInt());
+            lServo.write(incoming.substring(5).toInt());
         }
     }
 

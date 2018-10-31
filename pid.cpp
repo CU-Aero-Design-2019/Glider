@@ -74,7 +74,9 @@ float PIDImpl::calculate( float setpoint, float pv )
     float Dout = _Kd * derivative;
 	
     // Calculate total output
-    float output = Pout + Iout + Dout;
+	float output = Pout + Iout + Dout;
+	//It may be helpful to output these values to get a better idea of what the loops is doing
+	
 	// Restrict to max/min
     if( output > _max )
         output = _max;

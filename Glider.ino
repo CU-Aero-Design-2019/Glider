@@ -5,8 +5,13 @@
 
 //#define DEBUG
 
+
+
 #include "settings.h"
 #include <Servo.h>
+//Global outputs	
+Servo lServo;
+Servo rServo;
 #include "constants.h"
 #include "USB.h"
 #include <SpecGPS.h>
@@ -14,6 +19,7 @@
 #include <SpecIBUS.h>
 //#include "guidance.h"
 #include "Leveling.h"
+
 
 
 void setup(){
@@ -35,7 +41,7 @@ void setup(){
 
     Leveling::setup();
 
-    //delay(2000);
+    
 
     // load settings from EEPROM
     Settings::loadSettings();
@@ -63,7 +69,7 @@ void loop(){
     }
 	
 	if(millis() - SpecGPS::UpdateTimer > 1000/SpecGPS::UpdatePeriod){
-        SpecGPS::update();
+        //SpecGPS::update();
         SpecGPS::UpdateTimer = millis();
     }
 
