@@ -12,11 +12,11 @@ namespace Leveling{
 	const float UpdateFreq = .01;
     long UpdateTimer = 0;
 	
-	const int RServoMax = 83;
-	const int RServoMin = 44;
-	const int LServoMax = 73;
-	const int LServoMin = 42;
-	const int ServoMidPoint = 60;
+	const int RServoMax = 100;
+	const int RServoMin = 35;
+	const int LServoMax = 95;
+	const int LServoMin = 20;
+	const int ServoMidPoint = 65;
 	
 	const float MaxPitchAngle = 60;
 	const float MinPitchAngle = -80;
@@ -35,6 +35,8 @@ namespace Leveling{
 	float tareX = 0;
 	float tareY = 0;
 	
+	bool firstloop = true;
+	
 	PID pitchPID = PID(UpdateFreq, MaxPitchAngle, MinPitchAngle, pitchKp, pitchKd, pitchKi);
 	PID rollPID = PID(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
 
@@ -43,16 +45,37 @@ namespace Leveling{
         rServo.attach(PB0);
         lServo.write(ServoMidPoint);
         rServo.write(ServoMidPoint);
-        SpecMPU6050::gyroCoef = 0.95;
-        SpecMPU6050::accCoef = 0.05;
+        SpecMPU6050::gyroCoef = 0.99;
+        SpecMPU6050::accCoef = 0.01;
+		for(int i = 0; i < 1000; i++){	
+			SpecMPU6050::update();
+			delay(10);
+			float sampleX = SpecMPU6050::angleX;
+			float sampleY = SpecMPU6050::angleY;
+			// Serial.print("Sample X: ");
+			// Serial.println(sampleX);
+			// Serial.print("Sample Y: ");
+			// Serial.println(sampleY);
+		}
+			Serial.println("Here");
+		for(int i = 0; i < 100; i++){	
+			SpecMPU6050::update();
+			delay(10);
+			float sampleX = SpecMPU6050::angleX;
+			float sampleY = SpecMPU6050::angleY;
+			tareX += sampleX;
+			tareY += sampleY;
+			// Serial.print("Sample X: ");
+			// Serial.println(sampleX);
+			// Serial.print("Sample Y: ");
+			// Serial.println(sampleY);
+		}
 		
-		delay(2000);
-		tareX = SpecMPU6050::angleX;
-		tareY = SpecMPU6050::angleY;
+		tareX /= 100;
+		tareY /= 100;
     }
     
     void update(){
-
         float rollAngle = SpecMPU6050::angleX - tareX;
         float pitchAngle = SpecMPU6050::angleY - tareY;
 		
@@ -61,8 +84,14 @@ namespace Leveling{
         
         pitchOutput = pitchPID.calculate(0,pitchAngle);
 		rollOutput = rollPID.calculate(0,rollAngle);
-		//Serial.println(pitchOutput);
-		//Serial.println(rollOutput);
+		
+		// Serial.println(tareX);
+		// Serial.println(tareY);
+		// Serial.println(SpecMPU6050::angleX);
+		// Serial.println(SpecMPU6050::angleY);
+		
+		Serial.println(pitchOutput);
+		Serial.println(rollOutput);
 		
 		int lServoOutput = ServoMidPoint - rollOutput - pitchOutput;
         int rServoOutput = ServoMidPoint - rollOutput + pitchOutput;
@@ -83,11 +112,14 @@ namespace Leveling{
             rServo.write(rServoOutput);
         }
 		
-		Serial.print("Right: ");
-		Serial.print(rServo.read());
-		Serial.print("      Left: ");
-		Serial.println(lServo.read());
+		
+		// Serial.print("Right: ");
+		// Serial.print(rServo.read());
+		// Serial.print("      Left: ");
+		// Serial.println(lServo.read());
         Serial.println();
+		
+		firstloop = false;
     }
 
 };
