@@ -4,10 +4,12 @@
 #include <Servo.h>
 #include "SpecMPU6050.h"
 #include "globals.h"
+#include "pid.h"
 
 namespace Leveling{
 
     const long UpdatePeriod = 100;
+    const float UpdateFreq = 1/UpdatePeriod;
     long UpdateTimer = 0;
 	
 	const int RServoMax = 100;
@@ -88,8 +90,8 @@ namespace Leveling{
 		// Serial.println(SpecMPU6050::angleX);
 		// Serial.println(SpecMPU6050::angleY);
 		
-		Serial.println(pitchOutput);
-		Serial.println(rollOutput);
+		// Serial.println(pitchOutput);
+		// Serial.println(rollOutput);
 		
 		int lServoOutput = ServoMidPoint - rollOutput - pitchOutput;
         int rServoOutput = ServoMidPoint - rollOutput + pitchOutput;
@@ -115,7 +117,7 @@ namespace Leveling{
 		// Serial.print(rServo.read());
 		// Serial.print("      Left: ");
 		// Serial.println(lServo.read());
-        Serial.println();
+        // Serial.println();
 		
 		firstloop = false;
     }
