@@ -41,25 +41,24 @@ void setup(){
 
     // IMU setup
     SpecMPU6050::setup();
-	
+
 	Bluetooth::setup();
-    
+
 	Leveling::setup();
 
     // load settings from EEPROM
     Settings::loadSettings();
 
-<<<<<<< HEAD
-
-    
-    
+    #ifdef USE_BLUETOOTH
+    Bluetooth::setup();
+    #endif
 =======
     #ifdef USE_BLUETOOTH
     Bluetooth::setup();
     #endif
 >>>>>>> f3153d5efa99842511281e424724878b92b7a459
 
-    
+
 }
 
 void loop(){
@@ -73,7 +72,7 @@ void loop(){
         SpecMPU6050::update();
         SpecMPU6050::UpdateTimer = millis();
     }
-    
+
     if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
         Leveling::update();
         Leveling::UpdateTimer = millis();
@@ -90,7 +89,7 @@ void loop(){
         receiver.receiverUpdateTimer = millis();
     }
     #endif
-	
+
 	if(millis() - SpecGPS::UpdateTimer > 1000/SpecGPS::UpdatePeriod){
         //SpecGPS::update();
         SpecGPS::UpdateTimer = millis();
@@ -103,5 +102,5 @@ void loop(){
     } else {
         //digitalWrite(LED_BUILTIN, LOW);
     }
-    
+
 }
