@@ -32,14 +32,16 @@ void setup(){
 
     // IMU setup
     SpecMPU6050::setup();
-
-    Leveling::setup();
+	
+	Bluetooth::setup();
+    
+	Leveling::setup();
 
     // load settings from EEPROM
     Settings::loadSettings();
 
 
-    Bluetooth::setup();
+    
     
 
     
@@ -75,9 +77,9 @@ void loop(){
 
     float batteryVoltage = analogRead(PA4)*3.3*1.47/4095.0;
     if(batteryVoltage < 3.7){
-        digitalWrite(LED_BUILTIN, HIGH);
+        //digitalWrite(LED_BUILTIN, HIGH);
     } else {
-        digitalWrite(LED_BUILTIN, LOW);
+        //digitalWrite(LED_BUILTIN, LOW);
     }
     
 }

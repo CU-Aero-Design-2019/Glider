@@ -4,10 +4,13 @@
 #include <Servo.h>
 #include "SpecMPU6050.h"
 #include "globals.h"
+#include "pid.h"
+
 
 namespace Leveling{
 
     const long UpdatePeriod = 100;
+	const float UpdateFreq = 0.01;
     long UpdateTimer = 0;
 	
 	const int RServoMax = 100;
@@ -18,12 +21,12 @@ namespace Leveling{
 	
 	const float MaxPitchAngle = 60;
 	const float MinPitchAngle = -80;
-	const float pitchKp = 2;
+	const float pitchKp = .7;
 	const float pitchKd = 0;
 	const float pitchKi = 0;
 	
 	const float MaxRollAbs = 60;
-	const float rollKp = 2;
+	const float rollKp = .7;
 	const float rollKd = 0;
 	const float rollKi = 0;
 
@@ -55,7 +58,11 @@ namespace Leveling{
 			// Serial.print("Sample Y: ");
 			// Serial.println(sampleY);
 		}
-			Serial.println("Here");
+		
+    
+        digitalWrite(LED_BUILTIN, LOW);
+    
+    
 		for(int i = 0; i < 100; i++){	
 			SpecMPU6050::update();
 			delay(10);
@@ -68,9 +75,12 @@ namespace Leveling{
 			// Serial.print("Sample Y: ");
 			// Serial.println(sampleY);
 		}
-		
 		tareX /= 100;
 		tareY /= 100;
+		Serial.println("Done calibrating");
+		Serial3.println("Done calibrating");
+		
+		digitalWrite(LED_BUILTIN, HIGH);
     }
     
     void update(){
@@ -80,7 +90,7 @@ namespace Leveling{
 		float pitchOutput;
 		float rollOutput;
         
-        pitchOutput = pitchPID.calculate(0,pitchAngle);
+        pitchOutput = pitchPID.calculate(-10,pitchAngle);
 		rollOutput = rollPID.calculate(0,rollAngle);
 		
 		// Serial.println(tareX);
@@ -88,11 +98,12 @@ namespace Leveling{
 		// Serial.println(SpecMPU6050::angleX);
 		// Serial.println(SpecMPU6050::angleY);
 		
-		Serial.println(pitchOutput);
-		Serial.println(rollOutput);
+		//Serial.println(pitchOutput);
+		//Serial.println(rollOutput);
 		
 		int lServoOutput = ServoMidPoint - rollOutput - pitchOutput;
         int rServoOutput = ServoMidPoint - rollOutput + pitchOutput;
+		
 		
 		if(lServoOutput > LServoMax){
             lServo.write(LServoMax);
@@ -102,19 +113,19 @@ namespace Leveling{
             lServo.write(lServoOutput);
         }
 
-        if(lServoOutput > 170){
-            rServo.write(170);
-        }else if(lServoOutput < 10){
-            rServo.write(10);
+        if(rServoOutput > RServoMax){
+            rServo.write(RServoMax);
+        }else if(rServoOutput < RServoMin){
+            rServo.write(RServoMin);
         } else {
             rServo.write(rServoOutput);
         }
 		
 		
-		// Serial.print("Right: ");
-		// Serial.print(rServo.read());
-		// Serial.print("      Left: ");
-		// Serial.println(lServo.read());
+		Serial.print("Right: ");
+		Serial.print(rServo.read());
+		Serial.print("      Left: ");
+		Serial.println(lServo.read());
         Serial.println();
 		
 		firstloop = false;
