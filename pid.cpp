@@ -23,6 +23,7 @@ class PIDImpl
         float _Ki;
         float _pre_error;
         float _integral;
+		float _Ki2
 };
 
 
@@ -53,6 +54,8 @@ PIDImpl::PIDImpl( float dt, float max, float min, float Kp, float Kd, float Ki )
     _Ki(Ki),
     _pre_error(0),
     _integral(0)
+	_Ki2 = _Ki * dt;
+	
 {
 }
 
@@ -66,8 +69,8 @@ float PIDImpl::calculate( float setpoint, float pv )
     float Pout = _Kp * error;
 
     // Integral term
-    _integral += error * _dt;
-    float Iout = _Ki * _integral;
+    _integral += error * _Ki2;
+    float Iout =2--_integral;
 
     // Derivative term
     float derivative = (error - _pre_error) / _dt;
