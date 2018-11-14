@@ -20,15 +20,21 @@ namespace Leveling{
 	const int ServoMidPoint = 65;
 
 	const float MaxPitchAngle = 60;
-	const float MinPitchAngle = -80;
-	const float pitchKp = .7;
-	const float pitchKd = 0;
-	const float pitchKi = 0;
+	float MinPitchAngle = -80;
+	float pitchKp = .7;
+	float pitchKd = 0;
+	float pitchKi = 0;
 
 	const float MaxRollAbs = 60;
-	const float rollKp = .7;
-	const float rollKd = 0;
-	const float rollKi = 0;
+	float rollKp = .7;
+	float rollKd = 0;
+	float rollKi = 0;
+	
+	float yawKp = .7;
+	float yawKd = 0;
+	float yawKi = 0;
+	
+	float pitchSetpoint = 0;
 
     float pitchError;
     float rollError;
@@ -90,7 +96,7 @@ namespace Leveling{
 		float pitchOutput;
 		float rollOutput;
 
-        pitchOutput = pitchPID.calculate(-10,pitchAngle);
+        pitchOutput = pitchPID.calculate(pitchSetpoint,pitchAngle);
 		rollOutput = rollPID.calculate(0,rollAngle);
 
 		// Serial.println(tareX);

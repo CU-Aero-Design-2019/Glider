@@ -2,6 +2,18 @@
 #define SERIALPARSE_H
 
 #include "SpecMPU6050.h"
+#include "Leveling.h"
+
+void Print(String str){
+	Serial.println(str);
+	Serial3.println(str);
+}
+void Print(String str, float val){
+	Serial.print(str);
+	Serial.println(val);
+	Serial3.print(str);
+	Serial3.println(val);
+}
 
 void parse(String str){
     // make case insensative
@@ -28,33 +40,41 @@ void parse(String str){
         // Serial3.println(name);
 		
         if(name.equals("rp")){
-            // Serial.print("val = ");
-            // Serial.println(val);
-			
-            // Serial3.print("val = ");
-            // Serial3.println(val);
+            Leveling::rollKp = val;
+			Print("rp = ",val);
         }else if(name.equals("ri")){
-
+			Leveling::rollKi = val;
+			Print("ri = ",val);
         }else if(name.equals("rd")){
-
+			Leveling::rollKd = val;
+			Print("rd = ",val);
         }else if(name.equals("pp")){
-
+			Leveling::pitchKp = val;
+			Print("pp = ",val);
         }else if(name.equals("pi")){
-
+			Leveling::pitchKi = val;
+			Print("pi = ",val);
         }else if(name.equals("pd")){
-
+			Leveling::pitchKd = val;
+			Print("pd = ",val);
         }else if(name.equals("yp")){
-
+			Leveling::yawKp = val;
+			Print("yp = ",val);
         }else if(name.equals("yi")){
-
+			Leveling::yawKi = val;
+			Print("yi = ",val);
         }else if(name.equals("yd")){
-
+			Leveling::yawKd = val;
+			Print("yd = ",val);
         }else if(name.equals("ga")){
-
+			Print("ga = ",val);
             SpecMPU6050::setGA(val);
+        }else if(name.equals("pSet")){
+			Leveling::pitchSetpoint = val;
+			Print("pSet = ",val);
         }
     }else if(command.equals("save")){
-        
+		Settings::saveSettings();
     }
 
 }
