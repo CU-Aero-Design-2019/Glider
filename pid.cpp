@@ -23,7 +23,10 @@ class PIDImpl
         float _Ki;
         float _pre_error;
         float _integral;
-		float _Ki2
+		float _Ki2;
+		
+		bool saturatedMax = false;
+		bool saturatedMin = false;
 };
 
 
@@ -53,8 +56,10 @@ PIDImpl::PIDImpl( float dt, float max, float min, float Kp, float Kd, float Ki )
     _Kd(Kd),
     _Ki(Ki),
     _pre_error(0),
-    _integral(0)
-	_Ki2 = _Ki * dt;
+    _integral(0),
+	_Ki2(_Ki * dt)
+	
+	
 	
 {
 }
@@ -69,9 +74,13 @@ float PIDImpl::calculate( float setpoint, float pv )
     float Pout = _Kp * error;
 
     // Integral term
-    _integral += error * _Ki2;
-    float Iout =2--_integral;
-
+	//Only change the integral if the error is in the opposite direction if the output is saturated
+	//This prevents integral wind up
+	if(!(error > 0 && saturatedMax) && !(error < 0 && saturatedMin)){
+		_integral += error * _Ki2;
+	}
+	float Iout =_integral;
+	
     // Derivative term
     float derivative = (error - _pre_error) / _dt;
     float Dout = _Kd * derivative;
@@ -81,10 +90,17 @@ float PIDImpl::calculate( float setpoint, float pv )
 	//It may be helpful to output these values to get a better idea of what the loops is doing
 	
 	// Restrict to max/min
-    if( output > _max )
+    if( output > _max ){
         output = _max;
-    else if( output < _min )
+		saturatedMax = true;
+		saturatedMin = false;
+    }else if( output < _min ){
         output = _min;
+		saturatedMax = false;
+		saturatedMin = true;
+	}
+	saturatedMax = false;
+	saturatedMin = false;
 
     // Save error to previous error
     _pre_error = error;
