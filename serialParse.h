@@ -16,7 +16,7 @@ void Print(String str, float val){
 }
 
 void parse(String str){
-    // make case insensative
+    // make case insensitive
     str.toLowerCase();
 	
 	Serial.println(str);
@@ -42,46 +42,57 @@ void parse(String str){
         if(name.equals("rp")){
             Leveling::rollKp = val;
 			Print("rp = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("ri")){
 			Leveling::rollKi = val;
 			Print("ri = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("rd")){
 			Leveling::rollKd = val;
 			Print("rd = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("pp")){
 			Leveling::pitchKp = val;
 			Print("pp = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("pi")){
 			Leveling::pitchKi = val;
 			Print("pi = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("pd")){
 			Leveling::pitchKd = val;
 			Print("pd = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("yp")){
 			Leveling::yawKp = val;
 			Print("yp = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("yi")){
 			Leveling::yawKi = val;
 			Print("yi = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("yd")){
 			Leveling::yawKd = val;
 			Print("yd = ",val);
+			Leveling::reconfigPIDs();
         }else if(name.equals("ga")){
 			Print("ga = ",val);
             SpecMPU6050::setGA(val);
         }else if(name.equals("pSet")){
 			Leveling::pitchSetpoint = val;
 			Print("pSet = ",val);
-        }else if(name.equal("servoR")){
+        }else if(name.equals("servoR")){
             Leveling::manServR = val;
-        }else if(name.equal("servoL")){
+        }else if(name.equals("servoL")){
             Leveling::manServL = val;
-        }else if(name.equal("mode")){
+        }else if(name.equals("mode")){
             Leveling::mode = val;
         }
     }else if(command.equals("save")){
 		Settings::saveSettings();
-    }
+    }else if(command.equals("cali")){
+		Leveling::calibrate();
+	}
 
 }
 
