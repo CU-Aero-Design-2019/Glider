@@ -49,6 +49,7 @@ namespace Settings {
         settings.yawP = Leveling::yawKp;
         settings.yawI = Leveling::yawKi;
         settings.yawD = Leveling::yawKd;
+        Serial.print("Saving roll P: "); Serial.println(settings.rollP);
 
         // store only the gyro coeff because add coeff is 1-gyro
         settings.gyroCoef = SpecMPU6050::gyroCoef;
@@ -81,6 +82,8 @@ namespace Settings {
         Leveling::yawKp = settings.yawP;
         Leveling::yawKi = settings.yawI;
         Leveling::yawKd = settings.yawD;
+
+        Serial.print("Loaded roll P: "); Serial.println(Leveling::rollKp);
     }
 
 };

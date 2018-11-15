@@ -72,6 +72,12 @@ void parse(String str){
         }else if(name.equals("pSet")){
 			Leveling::pitchSetpoint = val;
 			Print("pSet = ",val);
+        }else if(name.equal("servoR")){
+            Leveling::manServR = val;
+        }else if(name.equal("servoL")){
+            Leveling::manServL = val;
+        }else if(name.equal("mode")){
+            Leveling::mode = val;
         }
     }else if(command.equals("save")){
 		Settings::saveSettings();
