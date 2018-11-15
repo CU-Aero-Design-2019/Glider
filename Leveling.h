@@ -42,6 +42,12 @@ namespace Leveling{
 	float tareX = 0;
 	float tareY = 0;
 
+	float manServR = ServoMidPoint;
+	float manServL = ServoMidPoint;
+	
+	//0 is manual mode, 1 is flying wing mode, 2 is tradition tail mode
+	int mode = 0;
+	
 	bool firstloop = true;
 
 	PID pitchPID = PID(UpdateFreq, MaxPitchAngle, MinPitchAngle, pitchKp, pitchKd, pitchKi);
