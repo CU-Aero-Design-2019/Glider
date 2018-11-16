@@ -15,6 +15,13 @@ void Print(String str, float val){
 	Serial3.println(val);
 }
 
+void Print(String str, int val){
+	Serial.print(str);
+	Serial.println(val);
+	Serial3.print(str);
+	Serial3.println(val);
+}
+
 void parse(String str){
     // make case insensitive
     str.toLowerCase();
@@ -33,10 +40,10 @@ void parse(String str){
         String name = str.substring(0, secondSpaceIndex);
         str = str.substring(secondSpaceIndex + 1);
         float val = str.toFloat();
-        // Serial.print("set");
+        //Serial.print("set");
         // Serial.println(name);
 
-		// Serial3.print("set");
+		//Serial3.print("set");
         // Serial3.println(name);
 		
         if(name.equals("rp")){
@@ -78,15 +85,20 @@ void parse(String str){
         }else if(name.equals("ga")){
 			Print("ga = ",val);
             SpecMPU6050::setGA(val);
-        }else if(name.equals("pSet")){
+        }else if(name.equals("pset")){
 			Leveling::pitchSetpoint = val;
 			Print("pSet = ",val);
-        }else if(name.equals("servoR")){
+        }else if(name.equals("servor")){
             Leveling::manServR = val;
-        }else if(name.equals("servoL")){
+			Print("R manual = ",val);
+        }else if(name.equals("servol")){
             Leveling::manServL = val;
+			Print("L manual = ",val);
         }else if(name.equals("mode")){
-            Leveling::mode = val;
+			int intVal = str.toInt();
+            Leveling::mode = intVal;
+			Print("Mode set to ",intVal);
+			Leveling::modeChange();
         }
     }else if(command.equals("save")){
 		Settings::saveSettings();
