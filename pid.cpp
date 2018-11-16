@@ -64,9 +64,34 @@ float PID::calculate( float setpoint, float pv )
 	
     return output;
 }
-PID::~PID() 
-{
-    //delete pimpl;
+
+void PID::reset( float dt, float max, float min, float Kp, float Kd, float Ki ){
+    //this->dt = dt;
+	//this->max = max;
+	//this->min = min;
+	this->Kp = Kp;
+	this->Ki = Ki;
+	this->Kd = Kd;
+	//integral = 0;
+	//pre_error = 0;
+	//saturatedMax = false;
+	//saturatedMin = false;
+}
+
+void PID::setKp(float in){
+	this->Kp = Kp;
+}
+void PID::setKi(float in){
+	this->Ki = Ki;
+}
+void PID::setKd(float in){
+	this->Kd = Kd;
+}
+void PID::setMax(float in){
+	this->max = max;
+}
+void PID::setMin(float in){
+	this->min = min;
 }
 
 #endif

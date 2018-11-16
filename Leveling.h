@@ -44,6 +44,10 @@ namespace Leveling{
 	float tareX = 0;
 	float tareY = 0;
 	float tareZ = 0;
+	
+	float gyroXoffset = 0;
+	float gyroYoffset = 0;
+	float gyroZoffset = 0;
 
 	float manServR = RServoMidPoint;
 	float manServL = LServoMidPoint;
@@ -62,12 +66,12 @@ namespace Leveling{
 			//manual mode so do nothing
 		}else if(mode == 1){
 			//reconfigure using flying wing settings
-			pitchPID = PID(UpdateFreq, MaxPitchAngle, MinPitchAngle, pitchKp, pitchKd, pitchKi);
-			rollPID = PID(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
+			pitchPID.reset(UpdateFreq, MaxPitchAngle, MinPitchAngle, pitchKp, pitchKd, pitchKi);
+			rollPID.reset(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
 		}else if(mode == 2){
 			//reconfigure using traditional tail mode
-			pitchPID = PID(UpdateFreq, 100, -100, pitchKp, pitchKd, pitchKi);
-			yawPID = PID(UpdateFreq, RServoMin, RServoMax, yawKp, yawKd, yawKi);
+			pitchPID.reset(UpdateFreq, 100, -100, pitchKp, pitchKd, pitchKi);
+			yawPID.reset(UpdateFreq, RServoMin, RServoMax, yawKp, yawKd, yawKi);
 		}
 	}
 	
@@ -102,10 +106,42 @@ namespace Leveling{
 	void calibrate(){
         digitalWrite(LED_BUILTIN, LOW);
 
+		//Take samples of the raw gyro data to create a baseline for eliminating drift
+		for(int i = 0; i < 100; i++){
+			SpecMPU6050::update();
+			delay(10);
+			float gyroXSample = SpecMPU6050::gyroX;
+			float gyroYSample = SpecMPU6050::gyroY;
+			float gyroZSample = SpecMPU6050::gyroZ;
+			gyroXoffset += gyroXSample;
+			gyroYoffset += gyroYSample;
+			gyroZoffset += gyroZSample;
+		}
+		gyroXoffset /=100;
+		gyroYoffset /=100;
+		gyroZoffset /=100;
+		SpecMPU6050::gyroXoffset = gyroXoffset;
+		SpecMPU6050::gyroYoffset = gyroYoffset;
+		SpecMPU6050::gyroZoffset = gyroZoffset;
+		
+		
+		//Zero out the gyro measures so that the pre offset applied angles dont get all up in there
+		SpecMPU6050::angleGyroX = 0;
+		SpecMPU6050::angleGyroY = 0;
+		SpecMPU6050::angleGyroZ = 0;
+		SpecMPU6050::angleX = 0;
+		SpecMPU6050::angleY = 0;
+		SpecMPU6050::angleZ = 0;
+		
+		for(int i = 0; i < 400; i++){
+			SpecMPU6050::update();
+			delay(10);
+		}
+		
 		tareX = 0;
 		tareY = 0;
 		tareZ = 0;
-		
+		//Take samples of the angle measurements to zero the measures out
 		for(int i = 0; i < 100; i++){
 			SpecMPU6050::update();
 			delay(10);
@@ -115,6 +151,7 @@ namespace Leveling{
 			tareX += sampleX;
 			tareY += sampleY;
 			tareZ += sampleZ;
+			
 		}
 		tareX /= 100;
 		tareY /= 100;
@@ -141,8 +178,15 @@ namespace Leveling{
 
     void update(){
         float rollAngle = SpecMPU6050::angleX - tareX;
-        float pitchAngle = SpecMPU6050::angleY - tareY;
+        float pitchAngle = -(SpecMPU6050::angleY - tareY);
 		float yawAngle = SpecMPU6050::angleZ - tareZ;
+		Serial3.print("E");
+		Serial3.print(SpecMPU6050::angleY);
+		Serial3.print(",");
+		Serial3.print(SpecMPU6050::gyroY);
+		Serial3.print(",");
+		Serial3.println(tareY);
+		
 		
 		
 		int lServoOutput = LServoMidPoint;
@@ -186,14 +230,13 @@ namespace Leveling{
 			
 			
 			rudderOut = yawPID.calculate(0,yawAngle);
-			rollPID.calculate(0,rollAngle);
 			
 			Serial.print("  yawAngle = ");
 			Serial.print(yawAngle);
 			Serial.print("  yawPIDOut = ");
 			Serial.println(rudderOut);
 			
-			lServoOutput = LServoMidPoint + elevatorOut;
+			lServoOutput = LServoMidPoint - elevatorOut;
 			rServoOutput = RServoMidPoint + rudderOut;
 		}
 		
