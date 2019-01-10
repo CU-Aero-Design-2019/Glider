@@ -35,13 +35,13 @@ float PID::calculate( float setpoint, float pv )
     float derivative = (error - pre_error) / dt;
     float Dout = Kd * derivative;
 	
-	Serial.print("PID Outs = ");
-	Serial.print(Pout);
-	Serial.print(" ");
-	Serial.print(Iout);
-	Serial.print(" ");
-	Serial.print(Dout);
-	Serial.println(" ");
+	// Serial.print("PID Outs = ");
+	// Serial.print(Pout);
+	// Serial.print(" ");
+	// Serial.print(Iout);
+	// Serial.print(" ");
+	// Serial.print(Dout);
+	// Serial.println(" ");
     // Calculate total output
 	float output = Pout + Iout + Dout;
 	//It may be helpful to output these values to get a better idea of what the loops is doing

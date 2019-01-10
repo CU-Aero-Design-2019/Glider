@@ -21,6 +21,7 @@
 #include "bluetooth.h"
 #endif
 #include "Leveling.h"
+#include "Pilot.h"
 
 
 void setup(){
@@ -45,6 +46,8 @@ void setup(){
 	Bluetooth::setup();
 
 	Leveling::setup();
+	
+	Pilot::setup();
 
     // load settings from EEPROM
     Settings::loadSettings();
@@ -62,12 +65,20 @@ void loop(){
     #ifdef USE_BLUETOOTH
     Bluetooth::update();
     #endif
+	
+	// needs to be constantly updated
+    SpecGPS::update();
 
     if(millis() - SpecMPU6050::UpdateTimer > 1000/SpecMPU6050::UpdatePeriod){
         SpecMPU6050::update();
         SpecMPU6050::UpdateTimer = millis();
     }
 
+	if(millis() - Pilot::UpdateTimer > 1000/Pilot::UpdatePeriod){
+        Pilot::update();
+        Pilot::UpdateTimer = millis();
+    }
+	
     if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
         Leveling::update();
         Leveling::UpdateTimer = millis();

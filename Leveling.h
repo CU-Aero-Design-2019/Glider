@@ -180,12 +180,12 @@ namespace Leveling{
         float rollAngle = SpecMPU6050::angleX - tareX;
         float pitchAngle = -(SpecMPU6050::angleY - tareY);
 		float yawAngle = SpecMPU6050::angleZ - tareZ;
-		Serial3.print("E");
-		Serial3.print(SpecMPU6050::angleY);
-		Serial3.print(",");
-		Serial3.print(SpecMPU6050::gyroY);
-		Serial3.print(",");
-		Serial3.println(tareY);
+		// Serial3.print("E");
+		// Serial3.print(SpecMPU6050::angleY);
+		// Serial3.print(",");
+		// Serial3.print(SpecMPU6050::gyroY);
+		// Serial3.print(",");
+		// Serial3.println(tareY);
 		
 		
 		
@@ -221,35 +221,35 @@ namespace Leveling{
 			float elevatorOut=0;
 			
 			elevatorOut = pitchPID.calculate(pitchSetpoint,pitchAngle);
-			Serial.print("setpoint = ");
-			Serial.print(pitchSetpoint);
-			Serial.print("  pitchAngle = ");
-			Serial.print(pitchAngle);
-			Serial.print("  pitchPIDOut = ");
-			Serial.println(elevatorOut);
+			// Serial.print("setpoint = ");
+			// Serial.print(pitchSetpoint);
+			// Serial.print("  pitchAngle = ");
+			// Serial.print(pitchAngle);
+			// Serial.print("  pitchPIDOut = ");
+			// Serial.println(elevatorOut);
 			
 			
 			rudderOut = yawPID.calculate(0,yawAngle);
 			
-			Serial.print("  yawAngle = ");
-			Serial.print(yawAngle);
-			Serial.print("  yawPIDOut = ");
-			Serial.println(rudderOut);
+			// Serial.print("  yawAngle = ");
+			// Serial.print(yawAngle);
+			// Serial.print("  yawPIDOut = ");
+			// Serial.println(rudderOut);
 			
 			lServoOutput = LServoMidPoint - elevatorOut;
 			rServoOutput = RServoMidPoint + rudderOut;
 		}
 		
 		
-		Serial.print("Right: ");
-		Serial.print(rServo.read());
-		Serial.print("      Left: ");
-		Serial.println(lServo.read());
+		// Serial.print("Right: ");
+		// Serial.print(rServo.read());
+		// Serial.print("      Left: ");
+		// Serial.println(lServo.read());
 		
-		Serial.print("Right Out: ");
-		Serial.print(rServoOutput);
-		Serial.print("      Left Out: ");
-		Serial.println(lServoOutput);
+		// Serial.print("Right Out: ");
+		// Serial.print(rServoOutput);
+		// Serial.print("      Left Out: ");
+		// Serial.println(lServoOutput);
 					
 		//Write the outputs to the servos
 		if(lServoOutput > LServoMax){
