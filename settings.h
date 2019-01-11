@@ -2,7 +2,6 @@
 #define SETTINGS_H
 
 #include <EEPROM.h>
-#include <sstream>
 #include "SpecMPU6050.h"
 #include "Leveling.h"
 #include <SpecGPS.h>
@@ -13,9 +12,9 @@ namespace Settings {
     const int StartAddress = 32;
     const int varSize = 20;
 
-    char*  targetLongitude;
-    char*  targetLatitude;
-    char*  targetAltitude;
+    String targetLongitude;
+    String  targetLatitude;
+    String  targetAltitude;
 
     // define a struct for storing the settings in EEPROM and instantiate one
     struct SettingsStruct {
@@ -34,36 +33,18 @@ namespace Settings {
         1, 1, 1, //yaw
         0.9 // gyroCoef
     };
-	
-	const char*  float_to_string(float in){
-		std::ostringstream os;
-		os<<in;
-		std::string  s = os.str();
-		
-		return s.c_str();
-	}
-	
-	char* constChartoChar(const char* in, int length){
-		char temp[length];
-		for (int i = 0; i<length; i++){
-			temp[i] = in[i];
-		}
-		return temp;
-	}
 
     // save settings to EEPROM from respective files
     void saveSettings() {
         
         // set the struct's coords from the local vars
-		// strcpy(targetLatitude, float_to_string(Pilot::lla_target.lat));
-		// targetLongitude = float_to_string(Pilot::lla_target.lng);
-		// targetAltitude = float_to_string(Pilot::lla_target.alt);
+		targetLatitude = String(Pilot::lla_target.lat);
+		targetLongitude = String(Pilot::lla_target.lng);
+		targetAltitude = String(Pilot::lla_target.alt);
 		
-		targetLongitude = constChartoChar(float_to_string(Pilot::lla_target.lat), varSize);
-		
-        // targetLongitude.toCharArray(settings.targetLongitude, varSize);
-        // targetLatitude.toCharArray(settings.targetLatitude, varSize);
-        // targetAltitude.toCharArray(settings.targetAltitude, varSize);
+        targetLongitude.toCharArray(settings.targetLongitude, varSize);
+        targetLatitude.toCharArray(settings.targetLatitude, varSize);
+        targetAltitude.toCharArray(settings.targetAltitude, varSize);
         
         // get the pids from leveling
         settings.rollP = Leveling::rollKp;
@@ -93,6 +74,11 @@ namespace Settings {
         for (int addressOffset = 0; addressOffset < sizeof(settings); addressOffset++) {
             *((char *)&settings + addressOffset) = EEPROM.read(StartAddress + addressOffset);
         }
+		
+		//read in target location
+		Pilot::lla_target.lat = atof(settings.targetLatitude);
+		Pilot::lla_target.lng = atof(settings.targetLongitude);
+		Pilot::lla_target.alt = atof(settings.targetAltitude);
         
         // set gyro and acc coef
         SpecMPU6050::gyroCoef = settings.gyroCoef;

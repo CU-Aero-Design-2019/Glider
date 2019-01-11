@@ -43,12 +43,15 @@ void setup(){
 
 	Leveling::setup();
 	
-	Pilot::setup();
+	
 
     // load settings from EEPROM
     Settings::loadSettings();
 
-    #ifdef USE_BLUETOOTH
+	//This is assumed to run after the settings are loaded in
+	Pilot::setup();
+    
+	#ifdef USE_BLUETOOTH
     Bluetooth::setup();
 	#endif
 

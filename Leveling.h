@@ -36,6 +36,7 @@ namespace Leveling{
 	float yawKi = 0;
 	
 	float pitchSetpoint = 0;
+	float yawSetpoint = 0;
 
     float pitchError;
     float rollError;
@@ -229,7 +230,7 @@ namespace Leveling{
 			// Serial.println(elevatorOut);
 			
 			
-			rudderOut = yawPID.calculate(0,yawAngle);
+			rudderOut = yawPID.calculate(yawSetpoint,yawAngle);
 			
 			// Serial.print("  yawAngle = ");
 			// Serial.print(yawAngle);
