@@ -13,15 +13,11 @@
 #include <Servo.h>
 #include "globals.h"
 #include "USB.h"
-#include <SpecGPS.h>
-#include <SpecMPU6050.h>
 #ifdef USE_RC
 #include <SpecIBUS.h>
 #else
 #include "bluetooth.h"
 #endif
-#include "Leveling.h"
-#include "Pilot.h"
 
 
 void setup(){

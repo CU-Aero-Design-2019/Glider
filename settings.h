@@ -2,16 +2,20 @@
 #define SETTINGS_H
 
 #include <EEPROM.h>
+#include <sstream>
 #include "SpecMPU6050.h"
 #include "Leveling.h"
+#include <SpecGPS.h>
+#include "Pilot.h"
+
 
 namespace Settings {
     const int StartAddress = 32;
     const int varSize = 20;
 
-    String targetLongitude;
-    String targetLatitude;
-    String targetAltitude;
+    char*  targetLongitude;
+    char*  targetLatitude;
+    char*  targetAltitude;
 
     // define a struct for storing the settings in EEPROM and instantiate one
     struct SettingsStruct {
@@ -30,14 +34,36 @@ namespace Settings {
         1, 1, 1, //yaw
         0.9 // gyroCoef
     };
+	
+	const char*  float_to_string(float in){
+		std::ostringstream os;
+		os<<in;
+		std::string  s = os.str();
+		
+		return s.c_str();
+	}
+	
+	char* constChartoChar(const char* in, int length){
+		char temp[length];
+		for (int i = 0; i<length; i++){
+			temp[i] = in[i];
+		}
+		return temp;
+	}
 
     // save settings to EEPROM from respective files
     void saveSettings() {
         
         // set the struct's coords from the local vars
-        targetLongitude.toCharArray(settings.targetLongitude, 20);
-        targetLatitude.toCharArray(settings.targetLatitude, 20);
-        targetAltitude.toCharArray(settings.targetAltitude, 20);
+		// strcpy(targetLatitude, float_to_string(Pilot::lla_target.lat));
+		// targetLongitude = float_to_string(Pilot::lla_target.lng);
+		// targetAltitude = float_to_string(Pilot::lla_target.alt);
+		
+		targetLongitude = constChartoChar(float_to_string(Pilot::lla_target.lat), varSize);
+		
+        // targetLongitude.toCharArray(settings.targetLongitude, varSize);
+        // targetLatitude.toCharArray(settings.targetLatitude, varSize);
+        // targetAltitude.toCharArray(settings.targetAltitude, varSize);
         
         // get the pids from leveling
         settings.rollP = Leveling::rollKp;
