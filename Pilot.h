@@ -47,43 +47,57 @@ namespace Pilot{
 	PID altitudePID(UpdateFreq, 180, -180, altitudeKp, altitudeKd, altitudeKi);
 	PID anglePID(UpdateFreq, -180, 180, angleKp, angleKd, angleKi);
 
-	void setTarget(){
+	bool setTarget(){
 		
-        digitalWrite(LED_BUILTIN, LOW);
 		
-		//wait till a valid non-zero value is provided
-		while(SpecGPS::gps.location.lat() == 0){
-			delay(10);
-			Serial.println("lat 0");
-		}
-		
-		//set the lla target to the current gps lla
-		lla_target.lat = SpecGPS::gps.location.lat();
-		lla_target.lng = SpecGPS::gps.location.lng();
-		lla_target.alt = SpecGPS::gps.altitude.value() / 100;
-
-		//print for debug
-		Serial.println("Target Acquired:");
-		Serial.print("lat: ");
-		Serial.print(lla_target.lat);
-		Serial.print("   lng: ");
-		Serial.print(lla_target.lng);
-		Serial.print("   alt: ");
-		Serial.print(lla_target.alt);
-		
-		//save the ecef_target for reference
-		SpecGPS::lla_to_ecef(lla_target, ecef_target);
-		
-		//write the target location to memory
-			
-		digitalWrite(LED_BUILTIN, HIGH);
-	}
-
-    void setup(){
-		//If the target aquire jumper is in, set the Target
 		Serial.println(digitalRead(PB14));
 		if(digitalRead(PB14)){
-			setTarget();
+			//If the target aquire jumper is in, read the gps to set the target
+			digitalWrite(LED_BUILTIN, LOW);
+
+		
+			//wait till a valid non-zero value is provided
+			if(SpecGPS::gps.location.lat() == 0){
+				Serial.println("Lat is at 0");
+				return false;
+			}
+			
+			//set the lla target to the current gps lla
+			lla_target.lat = SpecGPS::gps.location.lat();
+			lla_target.lng = SpecGPS::gps.location.lng();
+			lla_target.alt = 0;
+			
+			// //Use this for debug
+			// lla_target.lat = 39.747583;
+			// lla_target.lng = -83.813245;
+			// lla_target.alt = 0;
+			
+			
+			//print for debug
+			Serial.println("Target Acquired:");
+			Serial.print("lat: ");
+			Serial.print(lla_target.lat);
+			Serial.print("   lng: ");
+			Serial.print(lla_target.lng);
+			Serial.print("   alt: ");
+			Serial.print(lla_target.alt);
+			
+			//save the ecef_target for reference
+			SpecGPS::lla_to_ecef(lla_target, ecef_target);
+			
+			//print for debug
+			Serial.println("ECEF Target:");
+			Serial.print("X: ");
+			Serial.print(ecef_target.x);
+			Serial.print("   y: ");
+			Serial.print(ecef_target.y);
+			Serial.print("   z: ");
+			Serial.print(ecef_target.z);
+			
+			//write the target location to memory
+				
+			digitalWrite(LED_BUILTIN, HIGH);
+			return true;
 		}else{
 			//If the jumper is not in, the target location has been read in from the non-volitle momory
 			
@@ -98,18 +112,39 @@ namespace Pilot{
 			Serial.print("   alt: ");
 			Serial.print(lla_target.alt);
 			Serial.println("");
+			return true;
 		}
+	}
+
+    void setup(){
+		
+		
     }
 
-    void update(){
+    void update(SpecBMP180 bmp){
 		//poll the gps and update the current lla location
 		lla_current.lat = SpecGPS::gps.location.lat();
 		lla_current.lng = SpecGPS::gps.location.lng();
-		lla_current.alt = SpecGPS::gps.altitude.value() / 100;
+		lla_current.alt = bmp.readAvgOffsetAltitude();
 		
-		
+		// //for debug
+		// lla_current.lat = 39.747583;
+		// lla_current.lng = -83.813164;
+		// lla_current.alt = 1;
+				
 		//convert the lla location to enu
 		SpecGPS::lla_to_enu(lla_current, lla_target, ecef_target, enu_current);
+		
+		
+		Serial.println("Current GPS reading:");
+		Serial.print("East: ");
+		Serial.print(enu_current.e);
+		Serial.print("   North: ");
+		Serial.print(enu_current.n);
+		Serial.print("   Up: ");
+		Serial.print(enu_current.u);
+		Serial.println("");
+		
 		
 		//if the "inflight" jumper is in, set the current enu location to the launch
 		//enu location and then return

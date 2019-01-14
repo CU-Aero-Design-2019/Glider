@@ -9,6 +9,7 @@
     #define USE_RC
 #endif
 
+#include <SpecBMP180.h>
 #include "settings.h"
 #include <Servo.h>
 #include "globals.h"
@@ -19,6 +20,9 @@
 #include "bluetooth.h"
 #endif
 
+
+bool targetAquired = false;
+SpecBMP180 bmp;
 
 void setup(){
     pinMode(PA4, INPUT);
@@ -54,6 +58,10 @@ void setup(){
 	#ifdef USE_BLUETOOTH
     Bluetooth::setup();
 	#endif
+	
+	if (!bmp.begin()) {
+        Serial.println("Could not find a valid BMP085 sensor");
+    }
 
 
 }
@@ -74,7 +82,12 @@ void loop(){
     }
 
 	if(millis() - Pilot::UpdateTimer > 1000/Pilot::UpdatePeriod){
-        Pilot::update();
+        if(targetAquired){
+			Pilot::update(bmp);
+		}else{
+			targetAquired = Pilot::setTarget();
+		}
+		
         Pilot::UpdateTimer = millis();
     }
 	

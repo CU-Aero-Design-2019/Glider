@@ -27,7 +27,7 @@ namespace Settings {
 
     // PUT DEFAULTS HERE!
     SettingsStruct settings {
-        "defaultLongitude", "defaultLatitude", "defaultAltitude",
+        "-83.819384", "49.754812", "0",
         1, 1, 1, //roll
         1, 1, 1, //pitch
         1, 1, 1, //yaw
