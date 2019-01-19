@@ -1,10 +1,13 @@
 #ifndef PILOT_H
 #define PILOT_H
 
+//#define USE_GPS
+
 #include <Servo.h>
 #include "SpecMPU6050.h"
 #include "globals.h"
 #include "pid.h"
+#include "Settings.h"
 
 
 namespace Pilot{
@@ -20,12 +23,14 @@ namespace Pilot{
 	const float pitchRegion1TargetSpeed = 10.2819; //mps
 
 	float altitudeKp = .7;
-	float altitudeKd = 0.1;
-	float altitudeKi = 0.1;
+	float altitudeKd = 0;
+	float altitudeKi = 0;
 	
 	float angleKp = .7;
-	float angleKd = 0.1;
-	float angleKi = 0.1;
+	float angleKd = 0;
+	float angleKi = 0;
+	
+	int numGoodPoints = 0;
 	
 	
 	
@@ -47,31 +52,35 @@ namespace Pilot{
 	PID altitudePID(UpdateFreq, 180, -180, altitudeKp, altitudeKd, altitudeKi);
 	PID anglePID(UpdateFreq, -180, 180, angleKp, angleKd, angleKi);
 
-	bool setTarget(){
-		
-		
-		Serial.println(digitalRead(PB14));
+	bool setTarget(SpecBMP180 bmp){
 		if(digitalRead(PB14)){
 			//If the target aquire jumper is in, read the gps to set the target
 			digitalWrite(LED_BUILTIN, LOW);
 
-		
+			//Use this for debug
+			lla_target.lat = 39.747583;
+			lla_target.lng = -83.813245;
+			lla_target.alt = 0;
+			
+			#ifdef USE_GPS
 			//wait till a valid non-zero value is provided
 			if(SpecGPS::gps.location.lat() == 0){
-				Serial.println("Lat is at 0");
+				//Serial.println("Lat is at 0");
+				return false;
+			}else if(numGoodPoints < 100){
+				//wait to take the reading for 100 good points to come in
+				numGoodPoints++;
+				
+				//seed the altitude value
+				bmp.readAvgOffsetAltitude();
 				return false;
 			}
 			
 			//set the lla target to the current gps lla
 			lla_target.lat = SpecGPS::gps.location.lat();
 			lla_target.lng = SpecGPS::gps.location.lng();
-			lla_target.alt = 0;
-			
-			// //Use this for debug
-			// lla_target.lat = 39.747583;
-			// lla_target.lng = -83.813245;
-			// lla_target.alt = 0;
-			
+			lla_target.alt = bmp.readAvgOffsetAltitude();
+			#endif
 			
 			//print for debug
 			Serial.println("Target Acquired:");
@@ -95,11 +104,19 @@ namespace Pilot{
 			Serial.print(ecef_target.z);
 			
 			//write the target location to memory
+			// set the settings fields coords
+			Settings::targetLatitude = String(Pilot::lla_target.lat);
+			Settings::targetLongitude = String(Pilot::lla_target.lng);
+			Settings::targetAltitude = String(Pilot::lla_target.alt);
+			Settings::saveSettings();
 				
 			digitalWrite(LED_BUILTIN, HIGH);
 			return true;
 		}else{
-			//If the jumper is not in, the target location has been read in from the non-volitle momory
+			//If the jumper is not in, the target location has been read in from the non-volitle momory into settings
+			lla_target.lat = Settings::readTarget.lat;
+			lla_target.lng = Settings::readTarget.lng;
+			lla_target.alt = Settings::readTarget.alt;
 			
 			//create a ecef version
 			lla_to_ecef(lla_target, ecef_target);
@@ -122,19 +139,16 @@ namespace Pilot{
     }
 
     void update(SpecBMP180 bmp){
+		
+		#ifdef USE_GPS
 		//poll the gps and update the current lla location
 		lla_current.lat = SpecGPS::gps.location.lat();
 		lla_current.lng = SpecGPS::gps.location.lng();
 		lla_current.alt = bmp.readAvgOffsetAltitude();
-		
-		// //for debug
-		// lla_current.lat = 39.747583;
-		// lla_current.lng = -83.813164;
-		// lla_current.alt = 1;
 				
 		//convert the lla location to enu
 		SpecGPS::lla_to_enu(lla_current, lla_target, ecef_target, enu_current);
-		
+		#endif
 		
 		Serial.println("Current GPS reading:");
 		Serial.print("East: ");
@@ -154,6 +168,14 @@ namespace Pilot{
 			courseSlope = enu_launch.n/enu_launch.e;
 			slopeSquared = pow(courseSlope,2);
 			pitchState = 1;
+			
+			Leveling::yawSetpoint = 0;
+			Leveling::pitchSetpoint = 0;
+			firstLoop = false;
+			
+			Leveling::tareZ = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
+				lla_target.lng) - SpecQMC5883::heading;
+			
 			return;
 		}
 		
@@ -194,7 +216,17 @@ namespace Pilot{
 				break;
 		}
 
-		firstLoop = false;
+		
+		Serial.print("Yaw Error: ");
+		Serial.print(distFromCourse);
+		Serial.print("  Yaw Course Slope: ");
+		Serial.println(courseSlope);
+		
+		Serial.print("Pitch Setpoint: ");
+		Serial.print(Leveling::pitchSetpoint);
+		Serial.print("   Yaw Setpoint: ");
+		Serial.print(Leveling::yawSetpoint);
+		Serial.println("");
 	}
 
 };

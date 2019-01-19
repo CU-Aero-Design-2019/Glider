@@ -134,7 +134,7 @@ namespace Leveling{
 		SpecMPU6050::angleY = 0;
 		SpecMPU6050::angleZ = 0;
 		
-		for(int i = 0; i < 400; i++){
+		for(int i = 0; i < 10; i++){
 			SpecMPU6050::update();
 			delay(10);
 		}
@@ -188,7 +188,15 @@ namespace Leveling{
 		// Serial3.print(",");
 		// Serial3.println(tareY);
 		
-		
+		// Serial.print("Angle X: ");
+		// Serial.print(SpecMPU6050::angleX);
+		// Serial.print("  Angle Y: ");
+		// Serial.print(SpecMPU6050::angleY);
+		// Serial.print("  Angle Z: ");
+		// Serial.print(SpecMPU6050::angleZ);
+		// Serial.print("  coeffs: ");
+		// Serial.print(SpecMPU6050::gyroCoef);
+		// Serial.println(SpecMPU6050::accCoef);
 		
 		int lServoOutput = LServoMidPoint;
 		int rServoOutput = RServoMidPoint;
@@ -197,25 +205,10 @@ namespace Leveling{
 			//manual mode
 			lServoOutput = manServL;
 			rServoOutput = manServR;
-		}else if(mode == 1){
-			//flying wing mode
-			float pitchOutput;
-			float rollOutput;
-			
-			pitchOutput = pitchPID.calculate(pitchSetpoint,pitchAngle);
-			rollOutput = rollPID.calculate(0,rollAngle);
-
-			// Serial.println(tareX);
-			// Serial.println(tareY);
-			// Serial.println(SpecMPU6050::angleX);
-			// Serial.println(SpecMPU6050::angleY);
-
-			//Serial.println(pitchOutput);
-			//Serial.println(rollOutput);
-
-			lServoOutput = LServoMidPoint - rollOutput - pitchOutput;
-			rServoOutput = RServoMidPoint - rollOutput + pitchOutput;
-	
+		}else if(digitalRead(PB15)){
+			//The tow jumper is in so just set the servo to the center point
+			lServoOutput = LServoMidPoint;
+			rServoOutput = RServoMidPoint;
 		}else if(mode == 2){
 			//traditional tail mode
 			float rudderOut=0;
@@ -269,6 +262,11 @@ namespace Leveling{
 			rServo.write(rServoOutput);
 		}
     }
+	
+	void fullUpPitch(){
+		rServo.write(LServoMidPoint);
+		lServo.write(LServoMax);
+	}
 
 };
 

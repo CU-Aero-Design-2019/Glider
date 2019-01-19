@@ -3,6 +3,7 @@
 
 #include "SpecMPU6050.h"
 #include "Leveling.h"
+#include "Pilot.h"
 
 void Print(String str){
 	Serial.println(str);
@@ -36,10 +37,28 @@ void parse(String str){
     str = str.substring(firstSpaceIndex + 1);
 
     if(command.equals("set")) {
-        int secondSpaceIndex = str.indexOf(' ');
+        float val = 0;
+		float val2 = 0;
+		float val3 = 0;
+		
+		int secondSpaceIndex = str.indexOf(' ');
         String name = str.substring(0, secondSpaceIndex);
         str = str.substring(secondSpaceIndex + 1);
-        float val = str.toFloat();
+        val = str.toFloat();
+		
+		int thirdSpaceIndex = str.indexOf(' ');
+        if(thirdSpaceIndex > 0){
+			String name = str.substring(0, thirdSpaceIndex);
+			str = str.substring(thirdSpaceIndex + 1);
+			val2 = str.toFloat();
+		}
+		
+		int fourthSpaceIndex = str.indexOf(' ');
+		if(fourthSpaceIndex > 0){
+			String name = str.substring(0, fourthSpaceIndex);
+			str = str.substring(fourthSpaceIndex + 1);
+			val3 = str.toFloat();
+		}
         //Serial.print("set");
         // Serial.println(name);
 
@@ -99,7 +118,14 @@ void parse(String str){
             Leveling::mode = intVal;
 			Print("Mode set to ",intVal);
 			Leveling::modeChange();
-        }
+        }else if(name.equals("enu")){
+			Pilot::enu_current.e = val;
+			Pilot::enu_current.n = val2;
+			Pilot::enu_current.u = val3;
+			Print("e = ",val);
+			Print("n = ",val2);
+			Print("u = ",val3);
+		}
     }else if(command.equals("save")){
 		Settings::saveSettings();
     }else if(command.equals("cali")){

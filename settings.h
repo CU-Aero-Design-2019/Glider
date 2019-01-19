@@ -5,7 +5,6 @@
 #include "SpecMPU6050.h"
 #include "Leveling.h"
 #include <SpecGPS.h>
-#include "Pilot.h"
 
 
 namespace Settings {
@@ -15,6 +14,8 @@ namespace Settings {
     String targetLongitude;
     String  targetLatitude;
     String  targetAltitude;
+	
+	SpecGPS::LLA readTarget;
 
     // define a struct for storing the settings in EEPROM and instantiate one
     struct SettingsStruct {
@@ -36,11 +37,6 @@ namespace Settings {
 
     // save settings to EEPROM from respective files
     void saveSettings() {
-        
-        // set the struct's coords from the local vars
-		targetLatitude = String(Pilot::lla_target.lat);
-		targetLongitude = String(Pilot::lla_target.lng);
-		targetAltitude = String(Pilot::lla_target.alt);
 		
         targetLongitude.toCharArray(settings.targetLongitude, varSize);
         targetLatitude.toCharArray(settings.targetLatitude, varSize);
@@ -76,24 +72,24 @@ namespace Settings {
         }
 		
 		//read in target location
-		Pilot::lla_target.lat = atof(settings.targetLatitude);
-		Pilot::lla_target.lng = atof(settings.targetLongitude);
-		Pilot::lla_target.alt = atof(settings.targetAltitude);
+		readTarget.lat = atof(settings.targetLatitude);
+		readTarget.lng = atof(settings.targetLongitude);
+		readTarget.alt = atof(settings.targetAltitude);
         
         // set gyro and acc coef
-        SpecMPU6050::gyroCoef = settings.gyroCoef;
-        SpecMPU6050::accCoef = 1.0-settings.gyroCoef;
+        // SpecMPU6050::gyroCoef = settings.gyroCoef;
+        // SpecMPU6050::accCoef = 1.0-settings.gyroCoef;
 
         // set PIDs from settings
-        Leveling::rollKp = settings.rollP;
-        Leveling::rollKi = settings.rollI;
-        Leveling::rollKd = settings.rollD;
-        Leveling::pitchKp = settings.pitchP;
-        Leveling::pitchKi = settings.pitchI;
-        Leveling::pitchKd = settings.pitchD;
-        Leveling::yawKp = settings.yawP;
-        Leveling::yawKi = settings.yawI;
-        Leveling::yawKd = settings.yawD;
+        // Leveling::rollKp = settings.rollP;
+        // Leveling::rollKi = settings.rollI;
+        // Leveling::rollKd = settings.rollD;
+        // Leveling::pitchKp = settings.pitchP;
+        // Leveling::pitchKi = settings.pitchI;
+        // Leveling::pitchKd = settings.pitchD;
+        // Leveling::yawKp = settings.yawP;
+        // Leveling::yawKi = settings.yawI;
+        // Leveling::yawKd = settings.yawD;
 
         Serial.print("Loaded roll P: "); Serial.println(Leveling::rollKp);
     }

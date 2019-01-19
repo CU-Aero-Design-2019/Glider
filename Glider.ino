@@ -4,12 +4,14 @@
 //     Tabs or 4 spaces (go into arduino settings and check "use external editor" then use a real text editor)
 
 //#define DEBUG
-#define USE_BLUETOOTH
+#define GLIDER
+//#define USE_BLUETOOTH
 #ifndef USE_BLUETOOTH
     #define USE_RC
 #endif
 
 #include <SpecBMP180.h>
+#include <SpecQMC5883.h>
 #include "settings.h"
 #include <Servo.h>
 #include "globals.h"
@@ -19,6 +21,7 @@
 #else
 #include "bluetooth.h"
 #endif
+#include "Pilot.h"
 
 
 bool targetAquired = false;
@@ -43,7 +46,6 @@ void setup(){
     // IMU setup
     SpecMPU6050::setup();
 
-	Bluetooth::setup();
 
 	Leveling::setup();
 	
@@ -67,6 +69,9 @@ void setup(){
 }
 
 void loop(){
+	
+	
+	
     USB::update();
 
     #ifdef USE_BLUETOOTH
@@ -85,32 +90,37 @@ void loop(){
         if(targetAquired){
 			Pilot::update(bmp);
 		}else{
-			targetAquired = Pilot::setTarget();
+			targetAquired = Pilot::setTarget(bmp);
 		}
 		
         Pilot::UpdateTimer = millis();
     }
 	
-    if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
-        Leveling::update();
-        Leveling::UpdateTimer = millis();
-    }
-
     #ifdef USE_RC
     receiver.update();
+	int killSwitchVal = receiver.readChannel(4);
     if(millis() - receiver.receiverUpdateTimer > 1000/receiver.receiverUpdatePeriod){
-        //Serial.println(receiver.readChannel(13));
-        for(int i = 0; i < 14; i++){
-            Serial.print(i); Serial.print(": "); Serial.println(receiver.readChannel(i));
-        }
-        Serial.println();
+
+		if(killSwitchVal == 2000){
+			//RIP mode ativate
+			Leveling::fullUpPitch();
+			//Just hold the code so that nothing works ever again
+			while(1){
+				Serial.println("Did the big RIP");
+			}
+		}
         receiver.receiverUpdateTimer = millis();
     }
-    #endif
-
-	if(millis() - SpecGPS::UpdateTimer > 1000/SpecGPS::UpdatePeriod){
-        //SpecGPS::update();
-        SpecGPS::UpdateTimer = millis();
+    #endif	
+	
+    if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
+		Leveling::update();
+        Leveling::UpdateTimer = millis();
+    }
+	
+	if(millis() - SpecQMC5883::UpdateTimer > 1000/SpecQMC5883::UpdatePeriod){
+        SpecQMC5883::update();
+        SpecQMC5883::UpdateTimer = millis();
     }
 
 
