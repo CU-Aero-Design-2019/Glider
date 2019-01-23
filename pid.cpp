@@ -17,8 +17,19 @@ PID::PID( float dt, float max, float min, float Kp, float Kd, float Ki )
 float PID::calculate( float setpoint, float pv )
 {
 	// Calculate error
-    float error = setpoint - pv;
+    return calculate(setpoint - pv);
+}
 
+float PID::calculateHeading(float spHeading, float pvHeading)
+{
+	float error = spHeading - pvHeading;
+	if(error > 180) return calculate(error - 360);
+	if(error < -180) return calculate(error + 360);
+	return calculate(error);
+}
+
+float PID::calculate(float error)
+{
     // Proportional term
     float Pout = Kp * error;
 

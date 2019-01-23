@@ -37,6 +37,9 @@ namespace Leveling{
 	
 	float pitchSetpoint = 0;
 	float yawSetpoint = 0;
+	
+	float pitchSetpointOffset = 0;
+	float yawSetpointOffset = 0;
 
     float pitchError;
     float rollError;
@@ -134,7 +137,7 @@ namespace Leveling{
 		SpecMPU6050::angleY = 0;
 		SpecMPU6050::angleZ = 0;
 		
-		for(int i = 0; i < 10; i++){
+		for(int i = 0; i < 30; i++){
 			SpecMPU6050::update();
 			delay(10);
 		}
@@ -143,7 +146,7 @@ namespace Leveling{
 		tareY = 0;
 		tareZ = 0;
 		//Take samples of the angle measurements to zero the measures out
-		for(int i = 0; i < 100; i++){
+		for(int i = 0; i < 30; i++){
 			SpecMPU6050::update();
 			delay(10);
 			float sampleX = SpecMPU6050::angleX;
@@ -154,9 +157,9 @@ namespace Leveling{
 			tareZ += sampleZ;
 			
 		}
-		tareX /= 100;
-		tareY /= 100;
-		tareZ /= 100;
+		tareX /= 30;
+		tareY /= 30;
+		tareZ /= 30;
 		Serial.println("Done calibrating");
 		Serial3.println("Done calibrating");
 
@@ -179,7 +182,7 @@ namespace Leveling{
 
     void update(){
         float rollAngle = SpecMPU6050::angleX - tareX;
-        float pitchAngle = -(SpecMPU6050::angleY - tareY);
+        float pitchAngle = SpecMPU6050::angleY - tareY;
 		float yawAngle = SpecMPU6050::angleZ - tareZ;
 		// Serial3.print("E");
 		// Serial3.print(SpecMPU6050::angleY);
@@ -214,7 +217,7 @@ namespace Leveling{
 			float rudderOut=0;
 			float elevatorOut=0;
 			
-			elevatorOut = pitchPID.calculate(pitchSetpoint,pitchAngle);
+			elevatorOut = pitchPID.calculate(pitchSetpoint + pitchSetpointOffset,pitchAngle);
 			// Serial.print("setpoint = ");
 			// Serial.print(pitchSetpoint);
 			// Serial.print("  pitchAngle = ");
@@ -223,7 +226,7 @@ namespace Leveling{
 			// Serial.println(elevatorOut);
 			
 			
-			rudderOut = yawPID.calculate(yawSetpoint,yawAngle);
+			rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
 			
 			// Serial.print("  yawAngle = ");
 			// Serial.print(yawAngle);

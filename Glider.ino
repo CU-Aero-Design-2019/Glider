@@ -5,7 +5,7 @@
 
 //#define DEBUG
 #define GLIDER
-//#define USE_BLUETOOTH
+#define USE_BLUETOOTH
 #ifndef USE_BLUETOOTH
     #define USE_RC
 #endif
@@ -28,6 +28,17 @@ bool targetAquired = false;
 SpecBMP180 bmp;
 
 void setup(){
+	#ifdef USE_BLUETOOTH
+    Bluetooth::setup();
+	#endif
+
+	pinMode(PB14, INPUT);
+	pinMode(PB15, INPUT);
+	
+	pinMode(PB14, (WiringPinMode)LOW);
+	pinMode(PB15, (WiringPinMode)LOW);
+	
+	
     pinMode(PA4, INPUT);
 
     pinMode(LED_BUILTIN, OUTPUT);
@@ -46,21 +57,20 @@ void setup(){
     // IMU setup
     SpecMPU6050::setup();
 
-
+	//Compass Setup
+	SpecQMC5883::setup();
+	
 	Leveling::setup();
 	
-	
-
     // load settings from EEPROM
     Settings::loadSettings();
 
 	//This is assumed to run after the settings are loaded in
 	Pilot::setup();
     
-	#ifdef USE_BLUETOOTH
-    Bluetooth::setup();
-	#endif
+
 	
+	Serial.println("bmp setup");
 	if (!bmp.begin()) {
         Serial.println("Could not find a valid BMP085 sensor");
     }

@@ -26,6 +26,10 @@ class PID
         // Returns the manipulated variable given a setpoint and current process value
         float calculate( float setpoint, float pv );
 		
+		// Returns the manipulated variable given a setpoint and current process value
+        float calculate( float error);
+		float calculateHeading(float spHeading, float pvHeading);
+		
 		void reset(float dt, float max, float min, float Kp, float Kd, float Ki );
 		void setKp(float in);
 		void setKi(float in);
