@@ -26,7 +26,7 @@ namespace Pilot{
 	const float pitchRegion1TargetSpeed = 10.2819; //mps
 
 	float altitudeKp = .7;
-	float altitudeKd = 0;
+	float altitudeKd = 0;	
 	float altitudeKi = 0;
 	
 	float angleKp = .7;
@@ -152,14 +152,14 @@ namespace Pilot{
 		SpecGPS::lla_to_enu(lla_current, lla_target, ecef_target, enu_current);
 		#endif
 		
-		Serial.println("Current GPS reading:");
-		Serial.print("East: ");
-		Serial.print(enu_current.e);
-		Serial.print("   North: ");
-		Serial.print(enu_current.n);
-		Serial.print("   Up: ");
-		Serial.print(enu_current.u);
-		Serial.println("");
+		// Serial.println("Current GPS reading:");
+		// Serial.print("East: ");
+		// Serial.print(enu_current.e);
+		// Serial.print("   North: ");
+		// Serial.print(enu_current.n);
+		// Serial.print("   Up: ");
+		// Serial.print(enu_current.u);
+		// Serial.println("");
 				
 		Serial3.print("E");
 		
@@ -181,7 +181,7 @@ namespace Pilot{
 			slopeSquared = pow(courseSlope,2);
 			pitchState = 1;
 			
-			Leveling::yawSetpoint = 0;
+			//Leveling::yawSetpoint = 0;
 			Leveling::pitchSetpoint = 0;
 			
 			lastCourseTo = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
@@ -196,7 +196,8 @@ namespace Pilot{
 			pitchRegion2slope = tan(pitchRegion2angle*DEG_TO_REG);
 			pitchRegion2slopeSquared = pow(pitchRegion2slope,2);
 	
-			firstLoop = false;
+			//Locked to keep the PIDs from updating
+			//firstLoop = false;
 			
 			//Calculate the pitch slope by determining the angle of desent to hit
 			//the center of the target
@@ -245,20 +246,22 @@ namespace Pilot{
 		}
 
 		
-		Serial.print("Yaw Error: ");
-		Serial.print(distFromCourse);
-		Serial.print("  Yaw Course Slope: ");
-		Serial.println(courseSlope);
+		// Serial.print("Yaw Error: ");
+		// Serial.print(distFromCourse);
+		// Serial.print("  Yaw Course Slope: ");
+		// Serial.println(courseSlope);
 		
-		Serial.print("Pitch Setpoint: ");
-		Serial.print(Leveling::pitchSetpoint);
-		Serial.print("   Yaw Setpoint: ");
-		Serial.print(Leveling::yawSetpoint);
-		Serial.println("");
+		// Serial.print("Pitch Setpoint: ");
+		// Serial.print(Leveling::pitchSetpointOffset);
+		// Serial.print("   Yaw Setpoint: ");
+		// Serial.print(Leveling::yawSetpointOffset);
+		// Serial.println("");
 		
 		Serial3.print(SpecGPS::gps.speed.mps());
 		Serial3.print(",");
 		Serial3.println(SpecMPU6050::angleZ - Leveling::tareZ);
+		Serial3.print("lat: ");
+		Serial3.println(SpecGPS::gps.location.lat());
 	}
 
 };

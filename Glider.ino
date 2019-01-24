@@ -28,6 +28,9 @@ bool targetAquired = false;
 SpecBMP180 bmp;
 
 void setup(){
+	// USB serial setup
+    USB::setup();
+	
 	#ifdef USE_BLUETOOTH
     Bluetooth::setup();
 	#endif
@@ -46,15 +49,14 @@ void setup(){
     // GPS setup
     SpecGPS::setup();
 
-    // USB serial setup
-    USB::setup();
+    
 
     #ifdef USE_RC
     // Receiver setup
     receiver.setup(Serial3);
     #endif
 
-    // IMU setup
+    //IMU setup
     SpecMPU6050::setup();
 
 	//Compass Setup
@@ -68,9 +70,6 @@ void setup(){
 	//This is assumed to run after the settings are loaded in
 	Pilot::setup();
     
-
-	
-	Serial.println("bmp setup");
 	if (!bmp.begin()) {
         Serial.println("Could not find a valid BMP085 sensor");
     }
@@ -79,10 +78,10 @@ void setup(){
 }
 
 void loop(){
-	
-	
-	
-    USB::update();
+	USB::update();
+	// Serial.println("in the main loop");
+	// Serial3.println("hello BT");
+    
 
     #ifdef USE_BLUETOOTH
     Bluetooth::update();

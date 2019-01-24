@@ -68,39 +68,30 @@ void parse(String str){
         if(name.equals("rp")){
             Leveling::rollKp = val;
 			Print("rp = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("ri")){
 			Leveling::rollKi = val;
 			Print("ri = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("rd")){
 			Leveling::rollKd = val;
 			Print("rd = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("pp")){
 			Leveling::pitchKp = val;
 			Print("pp = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("pi")){
 			Leveling::pitchKi = val;
 			Print("pi = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("pd")){
 			Leveling::pitchKd = val;
 			Print("pd = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("yp")){
 			Leveling::yawKp = val;
 			Print("yp = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("yi")){
 			Leveling::yawKi = val;
 			Print("yi = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("yd")){
 			Leveling::yawKd = val;
 			Print("yd = ",val);
-			Leveling::reconfigPIDs();
         }else if(name.equals("ga")){
 			Print("ga = ",val);
             SpecMPU6050::setGA(val);
@@ -117,7 +108,6 @@ void parse(String str){
 			int intVal = str.toInt();
             Leveling::mode = intVal;
 			Print("Mode set to ",intVal);
-			Leveling::modeChange();
         }else if(name.equals("enu")){
 			Pilot::enu_current.e = val;
 			Pilot::enu_current.n = val2;

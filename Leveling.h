@@ -13,12 +13,12 @@ namespace Leveling{
 	const float UpdateFreq = 0.01;
     long UpdateTimer = 0;
 
-	int RServoMax = 100+RServoMax;
-	int RServoMin = 35;
-	int LServoMax = 95;
-	int LServoMin = 20;
-	int RServoMidPoint = 65;
-	int LServoMidPoint = 65;
+	int RServoMax = 170;
+	int RServoMin = 10;
+	int LServoMax = 170;
+	int LServoMin = 65;
+	int RServoMidPoint = 98;
+	int LServoMidPoint = 105;
 	
 	const float MaxPitchAngle = 60;
 	float MinPitchAngle = -80;
@@ -36,7 +36,7 @@ namespace Leveling{
 	float yawKi = 0;
 	
 	float pitchSetpoint = 0;
-	float yawSetpoint = 0;
+	float yawSetpoint = 90;
 	
 	float pitchSetpointOffset = 0;
 	float yawSetpointOffset = 0;
@@ -64,48 +64,6 @@ namespace Leveling{
 	PID rollPID(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
 	PID yawPID(UpdateFreq, RServoMin, RServoMax, yawKp, yawKd, yawKi);
 	
-	
-	void reconfigPIDs(){
-		if(mode == 0){
-			//manual mode so do nothing
-		}else if(mode == 1){
-			//reconfigure using flying wing settings
-			pitchPID.reset(UpdateFreq, MaxPitchAngle, MinPitchAngle, pitchKp, pitchKd, pitchKi);
-			rollPID.reset(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
-		}else if(mode == 2){
-			//reconfigure using traditional tail mode
-			pitchPID.reset(UpdateFreq, 100, -100, pitchKp, pitchKd, pitchKi);
-			yawPID.reset(UpdateFreq, RServoMin, RServoMax, yawKp, yawKd, yawKi);
-		}
-	}
-	
-	void modeChange(){
-		//call on a mode change
-		if(mode == 0){
-			//make manual mode changes
-			RServoMax = 170;
-			RServoMin = 10;
-			LServoMax = 170;
-			LServoMin = 10;
-		}else if(mode == 1){
-			//reconfigure using flying wing settings
-			RServoMax = 100;
-			RServoMin = 35;
-			LServoMax = 95;
-			LServoMin = 20;
-			RServoMidPoint = 65;
-			LServoMidPoint = 65;
-		}else if(mode == 2){
-			//reconfigure using traditional tail mode
-			RServoMax = 110;
-			RServoMin = 45;
-			LServoMax = 130;
-			LServoMin = 40;
-			RServoMidPoint = 78;
-			LServoMidPoint = 65;
-		}
-		reconfigPIDs();
-	}
 	
 	void calibrate(){
         digitalWrite(LED_BUILTIN, LOW);
@@ -173,7 +131,6 @@ namespace Leveling{
 		
 		calibrate();
 		
-		modeChange();
         lServo.attach(PB1);
         rServo.attach(PB0);
         lServo.write(LServoMidPoint);
@@ -182,8 +139,8 @@ namespace Leveling{
 
     void update(){
         float rollAngle = SpecMPU6050::angleX - tareX;
-        float pitchAngle = SpecMPU6050::angleY - tareY;
-		float yawAngle = SpecMPU6050::angleZ - tareZ;
+        float pitchAngle = -(SpecMPU6050::angleY - tareY);
+		float yawAngle = SpecQMC5883::headingFiltered;
 		// Serial3.print("E");
 		// Serial3.print(SpecMPU6050::angleY);
 		// Serial3.print(",");
@@ -228,10 +185,12 @@ namespace Leveling{
 			
 			rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
 			
-			// Serial.print("  yawAngle = ");
-			// Serial.print(yawAngle);
-			// Serial.print("  yawPIDOut = ");
-			// Serial.println(rudderOut);
+			Serial.print("  yawAngle = ");
+			Serial.print(yawAngle);
+			Serial.print("  yawSetpointWoffset = ");
+			Serial.print(yawSetpoint + yawSetpointOffset);
+			Serial.print("  yawPIDOut = ");
+			Serial.println(rudderOut);
 			
 			lServoOutput = LServoMidPoint - elevatorOut;
 			rServoOutput = RServoMidPoint + rudderOut;
@@ -264,6 +223,7 @@ namespace Leveling{
 		} else {
 			rServo.write(rServoOutput);
 		}
+		
     }
 	
 	void fullUpPitch(){

@@ -23,8 +23,13 @@ float PID::calculate( float setpoint, float pv )
 float PID::calculateHeading(float spHeading, float pvHeading)
 {
 	float error = spHeading - pvHeading;
-	if(error > 180) return calculate(error - 360);
-	if(error < -180) return calculate(error + 360);
+	if(error > 180){
+		error -= 360;
+	}
+	else if(error < -180){
+		error += 360;
+	}
+	Serial.println(error);
 	return calculate(error);
 }
 
