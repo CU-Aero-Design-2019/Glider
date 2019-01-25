@@ -181,7 +181,7 @@ namespace Pilot{
 			slopeSquared = pow(courseSlope,2);
 			pitchState = 1;
 			
-			//Leveling::yawSetpoint = 0;
+			Leveling::yawSetpoint = 0;
 			Leveling::pitchSetpoint = 0;
 			
 			lastCourseTo = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,

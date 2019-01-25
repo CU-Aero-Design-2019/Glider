@@ -27,6 +27,7 @@
 bool targetAquired = false;
 SpecBMP180 bmp;
 
+
 void setup(){
 	// USB serial setup
     USB::setup();
@@ -78,6 +79,19 @@ void setup(){
 }
 
 void loop(){
+	
+	if(digitalRead(PB15)){
+		if(dockDebounce < 10) dockDebounce ++;
+	}else{
+		if(dockDebounce > 0) dockDebounce --;
+	}	
+	
+	if(dockDebounce > 9){
+		docked = true;
+	}else if(dockDebounce < 1){
+		docked = false;
+	}
+	
 	USB::update();
 	// Serial.println("in the main loop");
 	// Serial3.println("hello BT");

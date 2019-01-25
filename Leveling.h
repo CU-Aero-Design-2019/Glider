@@ -138,7 +138,6 @@ namespace Leveling{
     }
 
     void update(){
-        float rollAngle = SpecMPU6050::angleX - tareX;
         float pitchAngle = -(SpecMPU6050::angleY - tareY);
 		float yawAngle = SpecQMC5883::headingFiltered;
 		// Serial3.print("E");
@@ -208,6 +207,9 @@ namespace Leveling{
 		// Serial.println(lServoOutput);
 					
 		//Write the outputs to the servos
+		//Check if the plane is in docked mode
+		if(globals::docked){
+			
 		if(lServoOutput > LServoMax){
 			lServo.write(LServoMax);
 		}else if(lServoOutput < LServoMin){

@@ -11,4 +11,7 @@ const int ReceiverSerialBaudrate = 115200;
 Servo lServo;
 Servo rServo;
 
+uint8_t dockDebounce = 10;
+bool docked = true;
+
 #endif
