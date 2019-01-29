@@ -19,22 +19,24 @@ namespace Settings {
 
     // define a struct for storing the settings in EEPROM and instantiate one
     struct SettingsStruct {
+		char targetLatitude[varSize];
         char targetLongitude[varSize];
-        char targetLatitude[varSize];
         char targetAltitude[varSize];
         float rollP, rollI, rollD, pitchP, pitchI, pitchD, yawP, yawI, yawD;
         float gyroCoef;
     };
 
     // PUT DEFAULTS HERE!
-    SettingsStruct settings {
-        "-83.819384", "49.754812", "0",
+    SettingsStruct defaultSettings {
+        "39.747833","-83.812673", "0",
         1, 1, 1, //roll
         1, 1, 1, //pitch
         1, 1, 1, //yaw
         0.9 // gyroCoef
     };
 
+	SettingsStruct settings;
+	
     // save settings to EEPROM from respective files
     void saveSettings() {
 		
@@ -63,6 +65,10 @@ namespace Settings {
         }
     }
 
+	bool badRead(){
+		return atof(settings.targetLatitude) == 0 || atof(settings.targetLongitude) == 0;
+	}
+	
     // load settings from EEPROM and store in respective files
     void loadSettings() {
         
@@ -70,6 +76,11 @@ namespace Settings {
         for (int addressOffset = 0; addressOffset < sizeof(settings); addressOffset++) {
             *((char *)&settings + addressOffset) = EEPROM.read(StartAddress + addressOffset);
         }
+		
+		//If the read did not work then use the defult settings 
+		if(badRead){
+			settings = defaultSettings;
+		}
 		
 		//read in target location
 		readTarget.lat = atof(settings.targetLatitude);

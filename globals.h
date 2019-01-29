@@ -13,5 +13,7 @@ Servo rServo;
 
 uint8_t dockDebounce = 10;
 bool docked = true;
+bool towed = true;
+bool trgtJumper = false;
 
 #endif

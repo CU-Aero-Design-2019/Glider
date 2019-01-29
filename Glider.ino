@@ -36,9 +36,11 @@ void setup(){
     Bluetooth::setup();
 	#endif
 
+	pinMode(PB13, INPUT);
 	pinMode(PB14, INPUT);
 	pinMode(PB15, INPUT);
 	
+	pinMode(PB13, (WiringPinMode)LOW);
 	pinMode(PB14, (WiringPinMode)LOW);
 	pinMode(PB15, (WiringPinMode)LOW);
 	
@@ -85,17 +87,22 @@ void loop(){
 	}else{
 		if(dockDebounce > 0) dockDebounce --;
 	}	
-	
 	if(dockDebounce > 9){
 		docked = true;
 	}else if(dockDebounce < 1){
 		docked = false;
 	}
+	towed = digitalRead(PB13);
+	trgtJumper = digitalRead(PB14);
+	
+	// Serial.print("Trgt Jump: ");
+	// Serial.print(trgtJumper);
+	// Serial.print("  Docked: ");
+	// Serial.print(docked);
+	// Serial.print("  Towed: ");
+	// Serial.println(towed);
 	
 	USB::update();
-	// Serial.println("in the main loop");
-	// Serial3.println("hello BT");
-    
 
     #ifdef USE_BLUETOOTH
     Bluetooth::update();

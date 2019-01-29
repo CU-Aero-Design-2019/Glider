@@ -29,7 +29,6 @@ float PID::calculateHeading(float spHeading, float pvHeading)
 	else if(error < -180){
 		error += 360;
 	}
-	Serial.println(error);
 	return calculate(error);
 }
 

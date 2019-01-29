@@ -1,7 +1,7 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-//#define USE_GPS
+#define USE_GPS
 
 #include <Servo.h>
 #include "SpecMPU6050.h"
@@ -50,19 +50,21 @@ namespace Pilot{
 	SpecGPS::LLA lla_current;
 	SpecGPS::ENU enu_current;
 	
+	SpecGPS::LLA lla_last;
+	
 	SpecGPS::ENU enu_launch;
 	
 	PID altitudePID(UpdateFreq, 180, -180, altitudeKp, altitudeKd, altitudeKi);
 	PID anglePID(UpdateFreq, -180, 180, angleKp, angleKd, angleKi);
 
 	bool setTarget(SpecBMP180 bmp){
-		if(digitalRead(PB14)){
+		if(trgtJumper){
 			//If the target aquire jumper is in, read the gps to set the target
 			digitalWrite(LED_BUILTIN, LOW);
 
 			//Use this for debug
-			lla_target.lat = 39.747583;
-			lla_target.lng = -83.813245;
+			lla_target.lat = 39.747833;
+			lla_target.lng = -83.812673;
 			lla_target.alt = 0;
 			
 			#ifdef USE_GPS
@@ -142,24 +144,38 @@ namespace Pilot{
     }
 
     void update(SpecBMP180 bmp){
+		
 		#ifdef USE_GPS
 		//poll the gps and update the current lla location
 		lla_current.lat = SpecGPS::gps.location.lat();
 		lla_current.lng = SpecGPS::gps.location.lng();
 		lla_current.alt = bmp.readAvgOffsetAltitude();
-				
-		//convert the lla location to enu
-		SpecGPS::lla_to_enu(lla_current, lla_target, ecef_target, enu_current);
-		#endif
+		#endif		
 		
-		// Serial.println("Current GPS reading:");
-		// Serial.print("East: ");
-		// Serial.print(enu_current.e);
-		// Serial.print("   North: ");
-		// Serial.print(enu_current.n);
-		// Serial.print("   Up: ");
-		// Serial.print(enu_current.u);
-		// Serial.println("");
+		
+		if(!SpecGPS::equals(lla_last, lla_current)){
+			//convert the lla location to enu
+			SpecGPS::lla_to_enu(lla_current, lla_target, ecef_target, enu_current);
+		}
+		lla_last = lla_current;
+		
+		Serial.println("LLA Target:");
+		Serial.print("Lat: ");
+		Serial.print(lla_target.lat);
+		Serial.print("   lng: ");
+		Serial.print(lla_target.lng);
+		Serial.print("   alt: ");
+		Serial.print(lla_target.alt);
+		Serial.println("");
+		
+		Serial.println("Current GPS reading:");
+		Serial.print("East: ");
+		Serial.print(enu_current.e);
+		Serial.print("   North: ");
+		Serial.print(enu_current.n);
+		Serial.print("   Up: ");
+		Serial.print(enu_current.u);
+		Serial.println("");
 				
 		Serial3.print("E");
 		
@@ -168,23 +184,25 @@ namespace Pilot{
 		// Serial3.print(",");
 		// Serial3.println(tareY);
 		
-		//Calculate pitch related metrics
-		float cicleRadi = enu_current.u / pitchRegion2slope;
-		float distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
-		
 		//if the "inflight" jumper is in, set the current enu location to the launch
 		//enu location and then return
 		//Also find the slope of the current course line using delY/delX
-		if(digitalRead(PB15) || firstLoop){
+		
+		//check current location and set altitude state
+		
+		float cicleRadi = enu_current.u / pitchRegion2slope;
+		float distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
+		
+		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
 			courseSlope = enu_launch.n/enu_launch.e;
 			slopeSquared = pow(courseSlope,2);
+			
 			pitchState = 1;
 			
-			Leveling::yawSetpoint = 0;
-			Leveling::pitchSetpoint = 0;
 			
-			lastCourseTo = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
+			
+			Leveling::yawSetpoint = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
 				lla_target.lng);
 			
 			Serial3.print(SpecQMC5883::heading);
@@ -195,27 +213,34 @@ namespace Pilot{
 			pitchRegion2angle = atan(enu_current.u/distanceOfPointToOrigin) * RAD_TO_DEG;
 			pitchRegion2slope = tan(pitchRegion2angle*DEG_TO_REG);
 			pitchRegion2slopeSquared = pow(pitchRegion2slope,2);
-	
+			Leveling::pitchSetpoint = 0;
+			
 			//Locked to keep the PIDs from updating
-			//firstLoop = false;
+			firstLoop = false;
 			
 			//Calculate the pitch slope by determining the angle of desent to hit
 			//the center of the target
 			
-			
+			// Serial.print("yawSetpoint: ");
+			// Serial.print(Leveling::yawSetpoint);
+			// Serial.print("  pitchSetpointWillbe: ");
+			// Serial.println(-pitchRegion2angle);
+			Serial3.print("lat: ");
+			Serial3.println(SpecGPS::gps.location.lat());
 			return;
 		}
+		Leveling::pitchSetpoint = -pitchRegion2angle;
 		
-		Leveling::yawSetpoint = lastCourseTo;
 		
 		//compare the enu location to the course to find current distance off course
-		float distFromCourse = abs(courseSlope*enu_current.e - enu_current.n)/sqrt(slopeSquared + 1);
+		float distFromCourse = courseSlope*enu_current.e - enu_current.n/sqrt(slopeSquared + 1);
 		
 		//run a pid update using the off course value as the error
 		//output of the calculate call should be the setpoint of the yaw PID in leveling
 		Leveling::yawSetpointOffset = anglePID.calculate(0,distFromCourse);
 		
-		//check current location and set altitude state
+
+				
 		
 		//Lock into state 2 for now
 		pitchState = 2;
@@ -226,8 +251,7 @@ namespace Pilot{
 			// pitchState = 2;
 		// }
 			
-		
-		float distFromSlope = 0;
+		float heightOfCourse = 0;
 		switch (pitchState){
 			case 1:
 			//if in state one run a call on the PID using the current air speed as the process variable, with the stall speed times
@@ -235,9 +259,14 @@ namespace Pilot{
 				Leveling::pitchSetpointOffset = altitudePID.calculate(pitchRegion1TargetSpeed, SpecGPS::gps.speed.mps());
 				break;
 			case 2:
-			//if in state two use logic similar to the yaw PID to stay on a line going up 60degrees from the target
-				distFromSlope = abs(sqrt(pow(enu_current.n,2) + pow(enu_current.e,2))-1);
-				Leveling::pitchSetpointOffset = altitudePID.calculate(pitchRegion2slope, distFromSlope);
+			//if in state two use logic similar to the yaw PID to stay on a slope to target
+				//Calculate pitch related metrics 
+				heightOfCourse = distanceOfPointToOrigin*pitchRegion2slope;
+				Leveling::pitchSetpointOffset = altitudePID.calculate(heightOfCourse, enu_current.u);
+				Serial.print("hight of course: ");
+				Serial.print(heightOfCourse);
+				Serial.print(" pitchSetpointOffset: ");
+				Serial.println(Leveling::pitchSetpointOffset);
 				break;
 			case 3:
 			//if in state three set the pitch pid setpoint to full pull up
@@ -246,10 +275,16 @@ namespace Pilot{
 		}
 
 		
-		// Serial.print("Yaw Error: ");
-		// Serial.print(distFromCourse);
-		// Serial.print("  Yaw Course Slope: ");
-		// Serial.println(courseSlope);
+		Serial.print("Yaw Error: ");
+		Serial.print(distFromCourse);
+		Serial.print("  Yaw Original Setpoint: ");
+		Serial.print(Leveling::yawSetpoint);
+		Serial.print("  Yaw setpoint offset: ");
+		Serial.print(Leveling::yawSetpointOffset);
+		Serial.print("  Yaw setpoint current: ");
+		Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
+		Serial.print("  Yaw Course Slope: ");
+		Serial.println(courseSlope);
 		
 		// Serial.print("Pitch Setpoint: ");
 		// Serial.print(Leveling::pitchSetpointOffset);
@@ -257,11 +292,18 @@ namespace Pilot{
 		// Serial.print(Leveling::yawSetpointOffset);
 		// Serial.println("");
 		
-		Serial3.print(SpecGPS::gps.speed.mps());
+		Serial3.print(distFromCourse);
 		Serial3.print(",");
-		Serial3.println(SpecMPU6050::angleZ - Leveling::tareZ);
-		Serial3.print("lat: ");
-		Serial3.println(SpecGPS::gps.location.lat());
+		Serial3.print(Leveling::yawSetpointOffset);
+		Serial3.print(",");
+		Serial3.print(SpecQMC5883::headingFiltered);
+		Serial3.print(",");
+		Serial3.println(SpecQMC5883::heading);
+		Serial3.print("yaw target to angle (yawsetpoint): ");
+		Serial3.println(Leveling::yawSetpoint);
+		Serial3.println("distance from course, yaw setpoint offset");
+		
+		
 	}
 
 };

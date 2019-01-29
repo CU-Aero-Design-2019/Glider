@@ -173,7 +173,11 @@ namespace Leveling{
 			float rudderOut=0;
 			float elevatorOut=0;
 			
-			elevatorOut = pitchPID.calculate(pitchSetpoint + pitchSetpointOffset,pitchAngle);
+			float finalPitchSetpoint = pitchSetpoint + pitchSetpointOffset;
+			if(finalPitchSetpoint > 0){
+				finalPitchSetpoint = 0;
+			}
+			elevatorOut = pitchPID.calculate(finalPitchSetpoint,pitchAngle);
 			// Serial.print("setpoint = ");
 			// Serial.print(pitchSetpoint);
 			// Serial.print("  pitchAngle = ");
@@ -184,12 +188,12 @@ namespace Leveling{
 			
 			rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
 			
-			Serial.print("  yawAngle = ");
-			Serial.print(yawAngle);
-			Serial.print("  yawSetpointWoffset = ");
-			Serial.print(yawSetpoint + yawSetpointOffset);
-			Serial.print("  yawPIDOut = ");
-			Serial.println(rudderOut);
+			// Serial.print("  yawAngle = ");
+			// Serial.print(yawAngle);
+			// Serial.print("  yawSetpointWoffset = ");
+			// Serial.print(yawSetpoint + yawSetpointOffset);
+			// Serial.print("  yawPIDOut = ");
+			// Serial.println(rudderOut);
 			
 			lServoOutput = LServoMidPoint - elevatorOut;
 			rServoOutput = RServoMidPoint + rudderOut;
@@ -208,25 +212,42 @@ namespace Leveling{
 					
 		//Write the outputs to the servos
 		//Check if the plane is in docked mode
-		if(globals::docked){
+		if(docked||towed){
+			//If docked then lock the control to netural
+			lServo.write(LServoMidPoint);
+			rServo.write(RServoMidPoint);
+		// }else if(towed){
+			// //If towed and not docked then use normal pitch control but lock the 
+			// //yaw control to netural
+			// rServo.write(RServoMidPoint);
 			
-		if(lServoOutput > LServoMax){
-			lServo.write(LServoMax);
-		}else if(lServoOutput < LServoMin){
-			lServo.write(LServoMin);
-		} else {
-			lServo.write(lServoOutput);
+			// if(lServoOutput > LServoMax){
+				// lServo.write(LServoMax);
+			// }else if(lServoOutput < LServoMin){
+				// lServo.write(LServoMin);
+			// } else {
+				// lServo.write(lServoOutput);
+			// }
+		}else{
+			//If not docked or towed normal operation
+			if(lServoOutput > LServoMax){
+				lServo.write(LServoMax);
+			}else if(lServoOutput < LServoMin){
+				lServo.write(LServoMin);
+			} else {
+				lServo.write(lServoOutput);
+			}
+
+			if(rServoOutput > RServoMax){
+				rServo.write(RServoMax);
+			}else if(rServoOutput < RServoMin){
+				rServo.write(RServoMin);
+			} else {
+				rServo.write(rServoOutput);
+			}
 		}
 
-		if(rServoOutput > RServoMax){
-			rServo.write(RServoMax);
-		}else if(rServoOutput < RServoMin){
-			rServo.write(RServoMin);
-		} else {
-			rServo.write(rServoOutput);
-		}
-		
-    }
+	}
 	
 	void fullUpPitch(){
 		rServo.write(LServoMidPoint);

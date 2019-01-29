@@ -115,6 +115,13 @@ void parse(String str){
 			Print("e = ",val);
 			Print("n = ",val2);
 			Print("u = ",val3);
+		}else if(name.equals("lla")){
+			Pilot::lla_current.lat = val;
+			Pilot::lla_current.lng = val2;
+			Pilot::lla_current.alt = val3;
+			Print("l = ",val);
+			Print("l = ",val2);
+			Print("a = ",val3);
 		}
     }else if(command.equals("save")){
 		Settings::saveSettings();
