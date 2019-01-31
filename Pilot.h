@@ -1,7 +1,7 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-#define USE_GPS
+//#define USE_GPS
 
 #include <Servo.h>
 #include "SpecMPU6050.h"
@@ -63,16 +63,16 @@ namespace Pilot{
 			digitalWrite(LED_BUILTIN, LOW);
 
 			//Use this for debug
-			lla_target.lat = 39.747833;
-			lla_target.lng = -83.812673;
+			lla_target.lat = 10.747833;
+			lla_target.lng = -70.812673;
 			lla_target.alt = 0;
 			
 			#ifdef USE_GPS
 			//wait till a valid non-zero value is provided
 			if(SpecGPS::gps.location.lat() == 0){
-				//Serial.println("Lat is at 0");
+				Serial.println("Waiting for GPS data");
 				return false;
-			}else if(numGoodPoints < 100){
+			}else if(numGoodPoints < 10){
 				//wait to take the reading for 100 good points to come in
 				numGoodPoints++;
 				
@@ -110,9 +110,9 @@ namespace Pilot{
 			
 			//write the target location to memory
 			// set the settings fields coords
-			Settings::targetLatitude = String(Pilot::lla_target.lat);
-			Settings::targetLongitude = String(Pilot::lla_target.lng);
-			Settings::targetAltitude = String(Pilot::lla_target.alt);
+			Settings::targetLatitude = Pilot::lla_target.lat;
+			Settings::targetLongitude = Pilot::lla_target.lng;
+			Settings::targetAltitude = Pilot::lla_target.alt;
 			Settings::saveSettings();
 				
 			digitalWrite(LED_BUILTIN, HIGH);
@@ -168,14 +168,21 @@ namespace Pilot{
 		Serial.print(lla_target.alt);
 		Serial.println("");
 		
-		Serial.println("Current GPS reading:");
-		Serial.print("East: ");
-		Serial.print(enu_current.e);
-		Serial.print("   North: ");
-		Serial.print(enu_current.n);
-		Serial.print("   Up: ");
-		Serial.print(enu_current.u);
-		Serial.println("");
+		// Serial.println("Current GPS reading:");
+		// Serial.print("Lat: ");
+		// Serial.print(lla_current.lat);
+		// Serial.print("   Lng: ");
+		// Serial.print(lla_current.lng);
+		// Serial.print("   Alt: ");
+		// Serial.print(lla_current.alt);
+		// Serial.println("");
+		// Serial.print("East: ");
+		// Serial.print(enu_current.e);
+		// Serial.print("   North: ");
+		// Serial.print(enu_current.n);
+		// Serial.print("   Up: ");
+		// Serial.print(enu_current.u);
+		// Serial.println("");
 				
 		Serial3.print("E");
 		
@@ -275,16 +282,16 @@ namespace Pilot{
 		}
 
 		
-		Serial.print("Yaw Error: ");
-		Serial.print(distFromCourse);
-		Serial.print("  Yaw Original Setpoint: ");
-		Serial.print(Leveling::yawSetpoint);
-		Serial.print("  Yaw setpoint offset: ");
-		Serial.print(Leveling::yawSetpointOffset);
-		Serial.print("  Yaw setpoint current: ");
-		Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
-		Serial.print("  Yaw Course Slope: ");
-		Serial.println(courseSlope);
+		// Serial.print("Yaw Error: ");
+		// Serial.print(distFromCourse);
+		// Serial.print("  Yaw Original Setpoint: ");
+		// Serial.print(Leveling::yawSetpoint);
+		// Serial.print("  Yaw setpoint offset: ");
+		// Serial.print(Leveling::yawSetpointOffset);
+		// Serial.print("  Yaw setpoint current: ");
+		// Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
+		// Serial.print("  Yaw Course Slope: ");
+		// Serial.println(courseSlope);
 		
 		// Serial.print("Pitch Setpoint: ");
 		// Serial.print(Leveling::pitchSetpointOffset);
