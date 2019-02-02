@@ -139,7 +139,7 @@ namespace Leveling{
 
     void update(){
         float pitchAngle = -(SpecMPU6050::angleY - tareY);
-		float yawAngle = SpecQMC5883::headingFiltered;
+		float yawAngle = SpecQMC5883::headingAverage;
 		// Serial3.print("E");
 		// Serial3.print(SpecMPU6050::angleY);
 		// Serial3.print(",");
@@ -196,7 +196,7 @@ namespace Leveling{
 			// Serial.println(rudderOut);
 			
 			lServoOutput = LServoMidPoint - elevatorOut;
-			rServoOutput = RServoMidPoint + rudderOut;
+			rServoOutput = RServoMidPoint - rudderOut;
 		}
 		
 		
