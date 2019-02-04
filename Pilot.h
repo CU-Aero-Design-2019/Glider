@@ -29,7 +29,7 @@ namespace Pilot{
 	float altitudeKd = 0;	
 	float altitudeKi = 0;
 	
-	float angleKp = .7;
+	float angleKp = 1;
 	float angleKd = 0;
 	float angleKi = 0;
 	
@@ -39,6 +39,8 @@ namespace Pilot{
 	
 	float courseSlope = 0;
 	double slopeSquared = 0;
+	
+	float courseTo = 0;
 	
 	bool firstLoop = true;
 	
@@ -63,8 +65,8 @@ namespace Pilot{
 			digitalWrite(LED_BUILTIN, LOW);
 
 			//Use this for debug
-			lla_target.lat = 10.747833;
-			lla_target.lng = -70.812673;
+			lla_target.lat = 39.747834;
+			lla_target.lng = -83.812673;
 			lla_target.alt = 0;
 			
 			#ifdef USE_GPS
@@ -199,7 +201,7 @@ namespace Pilot{
 		
 		float cicleRadi = enu_current.u / pitchRegion2slope;
 		float distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
-		float courseTo = 0;
+		
 		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
 			
@@ -252,15 +254,15 @@ namespace Pilot{
 		float distFromYawCourse = distanceOfPointToLaunch*sin(courseTo * DEG_TO_RAD);//this finds the abs of the error.
 		
 		//find the angle off N of the current point from the launch point
-		float currentErrorAngle = acos(enu_current.e/distFromYawCourse)*RAD_TO_DEG;
-		
-		if(enu_current.e>0.0 && enu_current.n>0.0){
+		float currentErrorAngle = acos((enu_current.e - enu_launch.e)/distFromYawCourse)*RAD_TO_DEG;
+
+		if(enu_current.e - enu_launch.e>0.0 && enu_current.n - enu_launch.n>0.0){
 			currentErrorAngle = 90 - currentErrorAngle;
-		}else if(enu_current.e<=0.0 && enu_current.n>0.0){
+		}else if(enu_current.e - enu_launch.e<=0.0 && enu_current.n - enu_launch.n>0.0){
 			currentErrorAngle = 450 - currentErrorAngle;
-		}else if(enu_current.e<=0.0 && enu_current.n<=0.0){
+		}else if(enu_current.e - enu_launch.e<=0.0 && enu_current.n - enu_launch.n<=0.0){
 			currentErrorAngle = 90 + currentErrorAngle;
-		}else if(enu_current.e>0.0 && enu_current.n<=0.0){
+		}else if(enu_current.e - enu_launch.e>0.0 && enu_current.n - enu_launch.n<=0.0){
 			currentErrorAngle = 90 + currentErrorAngle;
 		}
 		
@@ -327,6 +329,13 @@ namespace Pilot{
 				break;
 		}
 
+		
+		Serial.print("distance to launch point: ");
+		Serial.print(distanceOfPointToLaunch);
+		Serial.print("   course to: ");
+		Serial.print(courseTo);
+		Serial.print("   Current Error Angle: ");
+		Serial.println(currentErrorAngle);
 		
 		Serial.print("Yaw Error: ");
 		Serial.print(distFromYawCourse);
