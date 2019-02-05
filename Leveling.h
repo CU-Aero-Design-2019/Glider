@@ -250,7 +250,7 @@ namespace Leveling{
 	}
 	
 	void fullUpPitch(){
-		rServo.write(LServoMidPoint);
+		rServo.write(RServoMidPoint);
 		lServo.write(LServoMax);
 	}
 

@@ -1,7 +1,9 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-#define USE_GPS
+//#define USE_GPS
+
+#define STATUS_LED PA5
 
 #include <Servo.h>
 #include "SpecMPU6050.h"
@@ -62,7 +64,7 @@ namespace Pilot{
 	bool setTarget(SpecBMP180 bmp){
 		if(trgtJumper){
 			//If the target aquire jumper is in, read the gps to set the target
-			digitalWrite(LED_BUILTIN, LOW);
+			digitalWrite(STATUS_LED, LOW);
 
 			//Use this for debug
 			lla_target.lat = 39.747834;
@@ -74,7 +76,7 @@ namespace Pilot{
 			if(SpecGPS::gps.location.lat() == 0){
 				Serial.println("Waiting for GPS data");
 				return false;
-			}else if(numGoodPoints < 10){
+			}else if(numGoodPoints < 100){
 				//wait to take the reading for 100 good points to come in
 				numGoodPoints++;
 				
@@ -117,7 +119,7 @@ namespace Pilot{
 			Settings::targetAltitude = Pilot::lla_target.alt;
 			Settings::saveSettings();
 				
-			digitalWrite(LED_BUILTIN, HIGH);
+			digitalWrite(STATUS_LED, HIGH);
 			return true;
 		}else{
 			//If the jumper is not in, the target location has been read in from the non-volitle momory into settings
@@ -153,7 +155,11 @@ namespace Pilot{
 		lla_current.lng = SpecGPS::gps.location.lng();
 		lla_current.alt = bmp.readAvgOffsetAltitude();
 		#endif		
-		
+		if(lla_current.lat < 1){
+			digitalWrite(STATUS_LED, LOW);
+		}else{
+			digitalWrite(STATUS_LED, HIGH);
+		}
 		
 		if(!SpecGPS::equals(lla_last, lla_current)){
 			//convert the lla location to enu
@@ -212,9 +218,9 @@ namespace Pilot{
 				
 			Leveling::yawSetpoint = courseTo;
 			
-			Serial3.print(SpecQMC5883::headingAverage);
-			Serial3.print(",");
-			Serial3.println(SpecMPU6050::angleZ - Leveling::tareZ);
+			// Serial3.print(SpecQMC5883::headingAverage);
+			// Serial3.print(",");
+			// Serial3.println(SpecMPU6050::angleZ - Leveling::tareZ);
 			
 			//find angle to the target
 			pitchRegion2angle = atan(enu_current.u/distanceOfPointToOrigin) * RAD_TO_DEG;
@@ -355,16 +361,16 @@ namespace Pilot{
 		// Serial.println("");
 		
 		
-		Serial3.print(distFromYawCourse);
-		Serial3.print(",");
-		Serial3.print(Leveling::yawSetpointOffset);
-		Serial3.print(",");
-		Serial3.print(SpecQMC5883::headingAverage);
-		Serial3.print(",");
-		Serial3.println(SpecQMC5883::heading);
-		Serial3.print("yaw target to angle (yawsetpoint): ");
-		Serial3.println(Leveling::yawSetpoint);
-		Serial3.println("distance from course, yaw setpoint offset");
+		// Serial3.print(distFromYawCourse);
+		// Serial3.print(",");
+		// Serial3.print(Leveling::yawSetpointOffset);
+		// Serial3.print(",");
+		// Serial3.print(SpecQMC5883::headingAverage);
+		// Serial3.print(",");
+		// Serial3.println(SpecQMC5883::heading);
+		// Serial3.print("yaw target to angle (yawsetpoint): ");
+		// Serial3.println(Leveling::yawSetpoint);
+		// Serial3.println("distance from course, yaw setpoint offset");
 		
 		
 	}

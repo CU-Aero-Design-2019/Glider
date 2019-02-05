@@ -5,7 +5,7 @@
 
 //#define DEBUG
 #define GLIDER
-#define USE_BLUETOOTH
+//#define USE_BLUETOOTH
 #ifndef USE_BLUETOOTH
     #define USE_RC
 #endif
@@ -39,6 +39,8 @@ void setup(){
 	pinMode(PB13, INPUT);
 	pinMode(PB14, INPUT);
 	pinMode(PB15, INPUT);
+	
+	pinMode(PA5, OUTPUT);
 	
 	pinMode(PB13, (WiringPinMode)LOW);
 	pinMode(PB14, (WiringPinMode)LOW);
