@@ -15,5 +15,19 @@ uint8_t dockDebounce = 10;
 bool docked = true;
 bool towed = true;
 bool trgtJumper = false;
+bool man_override = false;
+
+bool targetAquired = false;
+
+enum led_modes {
+  OFF,
+  ON,
+  FLASH
+};
+long StatusUpdateTimer = 0;
+
+
+
+enum led_modes status_led;
 
 #endif

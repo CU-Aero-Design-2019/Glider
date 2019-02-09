@@ -7,20 +7,20 @@
 
 void Print(String str){
 	Serial.println(str);
-	Serial3.println(str);
+	//Serial3.println(str);
 }
 void Print(String str, float val){
 	Serial.print(str);
 	Serial.println(val);
-	Serial3.print(str);
-	Serial3.println(val);
+	// Serial3.print(str);
+	// Serial3.println(val);
 }
 
 void Print(String str, int val){
 	Serial.print(str);
 	Serial.println(val);
-	Serial3.print(str);
-	Serial3.println(val);
+	// Serial3.print(str);
+	// Serial3.println(val);
 }
 
 void parse(String str){
@@ -28,7 +28,7 @@ void parse(String str){
     str.toLowerCase();
 	
 	Serial.println(str);
-    Serial3.println(str);
+    // Serial3.println(str);
     
 	// get first word
     int firstSpaceIndex = str.indexOf(' ');

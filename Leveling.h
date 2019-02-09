@@ -6,6 +6,7 @@
 #include "globals.h"
 #include "pid.h"
 
+#define STATUS_LED PA5
 
 namespace Leveling{
 
@@ -56,6 +57,12 @@ namespace Leveling{
 	float manServR = RServoMidPoint;
 	float manServL = LServoMidPoint;
 	
+	float rudderOut=0;
+	float elevatorOut=0;
+	
+	float pitchAngle = 0;
+	
+	
 	//0 is manual mode, 1 is flying wing mode, 2 is tradition tail mode
 	int mode = 2;
 	
@@ -67,9 +74,15 @@ namespace Leveling{
 	
 	void calibrate(){
         digitalWrite(LED_BUILTIN, LOW);
+		status_led = OFF;
+		
+	    for(int i = 0; i < 50; i++){
+			SpecMPU6050::update();
+			delay(10);
+		}
 
 		//Take samples of the raw gyro data to create a baseline for eliminating drift
-		for(int i = 0; i < 100; i++){
+		for(int i = 0; i < 50; i++){
 			SpecMPU6050::update();
 			delay(10);
 			float gyroXSample = SpecMPU6050::gyroX;
@@ -95,7 +108,7 @@ namespace Leveling{
 		SpecMPU6050::angleY = 0;
 		SpecMPU6050::angleZ = 0;
 		
-		for(int i = 0; i < 30; i++){
+		for(int i = 0; i < 50; i++){
 			SpecMPU6050::update();
 			delay(10);
 		}
@@ -104,7 +117,7 @@ namespace Leveling{
 		tareY = 0;
 		tareZ = 0;
 		//Take samples of the angle measurements to zero the measures out
-		for(int i = 0; i < 30; i++){
+		for(int i = 0; i < 50; i++){
 			SpecMPU6050::update();
 			delay(10);
 			float sampleX = SpecMPU6050::angleX;
@@ -119,7 +132,7 @@ namespace Leveling{
 		tareY /= 30;
 		tareZ /= 30;
 		Serial.println("Done calibrating");
-		Serial3.println("Done calibrating");
+		//Serial3.println("Done calibrating");
 
 		digitalWrite(LED_BUILTIN, HIGH);
 	}
@@ -138,7 +151,7 @@ namespace Leveling{
     }
 
     void update(){
-        float pitchAngle = -(SpecMPU6050::angleY - tareY);
+        pitchAngle = -(SpecMPU6050::angleY - tareY);
 		float yawAngle = SpecQMC5883::headingAverage;
 		// Serial3.print("E");
 		// Serial3.print(SpecMPU6050::angleY);
@@ -170,8 +183,7 @@ namespace Leveling{
 			rServoOutput = RServoMidPoint;
 		}else if(mode == 2){
 			//traditional tail mode
-			float rudderOut=0;
-			float elevatorOut=0;
+			
 			
 			float finalPitchSetpoint = pitchSetpoint + pitchSetpointOffset;
 			if(finalPitchSetpoint > 0){

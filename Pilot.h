@@ -1,7 +1,7 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-//#define USE_GPS
+#define USE_GPS
 
 #define STATUS_LED PA5
 
@@ -27,7 +27,7 @@ namespace Pilot{
 	const int pitchRegion3Hight = 3; //meters
 	const float pitchRegion1TargetSpeed = 10.2819; //mps
 
-	float altitudeKp = .7;
+	float altitudeKp = 2;
 	float altitudeKd = 0;	
 	float altitudeKi = 0;
 	
@@ -48,6 +48,14 @@ namespace Pilot{
 	
 	int pitchState = 1;
 	
+	float distFromYawCourse = 0;
+	float currentErrorAngle = 0;
+	
+	float distanceOfPointToOrigin = 0;
+	float distanceOfPointToLaunch = 0;
+	
+	float heightOfCourse = 0;
+	
 	SpecGPS::ECEF ecef_target;
 	SpecGPS::LLA lla_target;
 	
@@ -64,7 +72,7 @@ namespace Pilot{
 	bool setTarget(SpecBMP180 bmp){
 		if(trgtJumper){
 			//If the target aquire jumper is in, read the gps to set the target
-			digitalWrite(STATUS_LED, LOW);
+			status_led = FLASH;
 
 			//Use this for debug
 			lla_target.lat = 39.747834;
@@ -119,7 +127,7 @@ namespace Pilot{
 			Settings::targetAltitude = Pilot::lla_target.alt;
 			Settings::saveSettings();
 				
-			digitalWrite(STATUS_LED, HIGH);
+			status_led = ON;
 			return true;
 		}else{
 			//If the jumper is not in, the target location has been read in from the non-volitle momory into settings
@@ -156,9 +164,9 @@ namespace Pilot{
 		lla_current.alt = bmp.readAvgOffsetAltitude();
 		#endif		
 		if(lla_current.lat < 1){
-			digitalWrite(STATUS_LED, LOW);
+			status_led = FLASH;
 		}else{
-			digitalWrite(STATUS_LED, HIGH);
+			status_led = ON;
 		}
 		
 		if(!SpecGPS::equals(lla_last, lla_current)){
@@ -189,10 +197,9 @@ namespace Pilot{
 		Serial.print("   North: ");
 		Serial.print(enu_current.n);
 		Serial.print("   Up: ");
-		Serial.print(enu_current.u);
-		Serial.println("");
+		Serial.println(enu_current.u);
 				
-		Serial3.print("E");
+		//Serial3.print("E");
 		
 		// Serial3.print(",");
 		// Serial3.print(SpecMPU6050::gyroY);
@@ -206,7 +213,10 @@ namespace Pilot{
 		//check current location and set altitude state
 		
 		float cicleRadi = enu_current.u / pitchRegion2slope;
-		float distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
+		distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
+		
+		Serial.print("Number of sats: ");
+		Serial.println(SpecGPS::gps.satellites.value());
 		
 		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
@@ -235,8 +245,8 @@ namespace Pilot{
 			// Serial.print(Leveling::yawSetpoint);
 			// Serial.print("  pitchSetpointWillbe: ");
 			// Serial.println(-pitchRegion2angle);
-			Serial3.print("lat: ");
-			Serial3.println(SpecGPS::gps.location.lat());
+			//Serial3.print("lat: ");
+			//Serial3.println(SpecGPS::gps.location.lat());
 			
 			
 			Serial.print("Distance to target: ");
@@ -251,16 +261,16 @@ namespace Pilot{
 			firstLoop = false;
 			return;
 		}
-		float distanceOfPointToLaunch = sqrt(pow(enu_current.e - enu_launch.e,2) + pow(enu_current.n - enu_launch.n,2));
+		distanceOfPointToLaunch = sqrt(pow(enu_current.e - enu_launch.e,2) + pow(enu_current.n - enu_launch.n,2));
 		
 		Leveling::pitchSetpoint = -pitchRegion2angle;
 		
 		//compare the enu location to the course to find current distance off course		
 		//using yaw setpoint as the courseTo value
-		float distFromYawCourse = distanceOfPointToLaunch*sin(courseTo * DEG_TO_RAD);//this finds the abs of the error.
+		distFromYawCourse = distanceOfPointToLaunch*sin(courseTo * DEG_TO_RAD);//this finds the abs of the error.
 		
 		//find the angle off N of the current point from the launch point
-		float currentErrorAngle = acos((enu_current.e - enu_launch.e)/distFromYawCourse)*RAD_TO_DEG;
+		currentErrorAngle = acos((enu_current.e - enu_launch.e)/distFromYawCourse)*RAD_TO_DEG;
 
 		if(enu_current.e - enu_launch.e>0.0 && enu_current.n - enu_launch.n>0.0){
 			currentErrorAngle = 90 - currentErrorAngle;
@@ -312,7 +322,7 @@ namespace Pilot{
 			// pitchState = 2;
 		// }
 			
-		float heightOfCourse = 0;
+		
 		switch (pitchState){
 			case 1:
 			//if in state one run a call on the PID using the current air speed as the process variable, with the stall speed times
@@ -336,30 +346,32 @@ namespace Pilot{
 		}
 
 		
-		Serial.print("distance to launch point: ");
-		Serial.print(distanceOfPointToLaunch);
-		Serial.print("   course to: ");
-		Serial.print(courseTo);
-		Serial.print("   Current Error Angle: ");
-		Serial.println(currentErrorAngle);
+		// Serial.print("distance to launch point: ");
+		// Serial.print(distanceOfPointToLaunch);
+		// Serial.print("   course to: ");
+		// Serial.print(courseTo);
+		// Serial.print("   Current Error Angle: ");
+		// Serial.println(currentErrorAngle);
 		
-		Serial.print("Yaw Error: ");
-		Serial.print(distFromYawCourse);
-		Serial.print("  Yaw Original Setpoint: ");
-		Serial.print(Leveling::yawSetpoint);
-		Serial.print("  Yaw setpoint offset: ");
-		Serial.print(Leveling::yawSetpointOffset);
-		Serial.print("  Yaw setpoint current: ");
-		Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
-		Serial.print("  Yaw Course Slope: ");
-		Serial.println(courseSlope);
-		
-		// Serial.print("Pitch Setpoint: ");
-		// Serial.print(Leveling::pitchSetpointOffset);
-		// Serial.print("   Yaw Setpoint: ");
+		// Serial.print("Yaw Error: ");
+		// Serial.print(distFromYawCourse);
+		// Serial.print("  Yaw Original Setpoint: ");
+		// Serial.print(Leveling::yawSetpoint);
+		// Serial.print("  Yaw setpoint offset: ");
 		// Serial.print(Leveling::yawSetpointOffset);
-		// Serial.println("");
+		// Serial.print("  Yaw setpoint current: ");
+		// Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
+		// Serial.print("  Yaw Course Slope: ");
+		// Serial.println(courseSlope);
 		
+		Serial.print("Pitch Setpoint Offset: ");
+		Serial.print(Leveling::pitchSetpointOffset);
+		Serial.print("  Pitch Setpoint: ");
+		Serial.print(Leveling::pitchSetpoint);
+		Serial.print("  Height of Course: ");
+		Serial.print(heightOfCourse);
+		Serial.print("  Pitch Error: ");
+		Serial.println(heightOfCourse-enu_current.u);
 		
 		// Serial3.print(distFromYawCourse);
 		// Serial3.print(",");
@@ -371,6 +383,8 @@ namespace Pilot{
 		// Serial3.print("yaw target to angle (yawsetpoint): ");
 		// Serial3.println(Leveling::yawSetpoint);
 		// Serial3.println("distance from course, yaw setpoint offset");
+		
+
 		
 		
 	}

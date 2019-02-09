@@ -22,10 +22,13 @@
 #include "bluetooth.h"
 #endif
 #include "Pilot.h"
+#include "Logging.h"
 
 
-bool targetAquired = false;
+
 SpecBMP180 bmp;
+
+bool StatusFlashOn = false;
 
 
 void setup(){
@@ -59,6 +62,8 @@ void setup(){
     #ifdef USE_RC
     // Receiver setup
     receiver.setup(Serial3);
+	//This must run after RC setup
+	Logging::setup();
     #endif
 
     //IMU setup
@@ -74,6 +79,8 @@ void setup(){
 
 	//This is assumed to run after the settings are loaded in
 	Pilot::setup();
+	
+	
     
 	if (!bmp.begin()) {
         Serial.println("Could not find a valid BMP085 sensor");
@@ -128,25 +135,21 @@ void loop(){
         Pilot::UpdateTimer = millis();
     }
 	
+	int killSwitchVal = 0;
     #ifdef USE_RC
     receiver.update();
-	int killSwitchVal = receiver.readChannel(4);
-    if(millis() - receiver.receiverUpdateTimer > 1000/receiver.receiverUpdatePeriod){
-
-		if(killSwitchVal == 2000){
-			//RIP mode ativate
-			Leveling::fullUpPitch();
-			//Just hold the code so that nothing works ever again
-			while(1){
-				Serial.println("Did the big RIP");
-			}
-		}
-        receiver.receiverUpdateTimer = millis();
-    }
+	killSwitchVal = receiver.readChannel(4);
     #endif	
 	
     if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
-		Leveling::update();
+		if(killSwitchVal == 2000){
+			//RIP mode ativate
+			Leveling::fullUpPitch();
+			man_override = true;
+		}else{
+			Leveling::update();
+			man_override = false;
+		}
         Leveling::UpdateTimer = millis();
     }
 	
@@ -156,11 +159,21 @@ void loop(){
     }
 
 
-    float batteryVoltage = analogRead(PA4)*3.3*1.47/4095.0;
-    if(batteryVoltage < 3.7){
-        //digitalWrite(LED_BUILTIN, HIGH);
-    } else {
-        //digitalWrite(LED_BUILTIN, LOW);
+	if(millis() - Logging::UpdateTimer > 1000/Logging::UpdatePeriod){
+        Logging::update();
+        Logging::UpdateTimer = millis();
     }
-
+	
+	if(status_led == OFF){
+		digitalWrite(STATUS_LED, LOW);
+	}else if(status_led == ON){
+		digitalWrite(STATUS_LED, HIGH);
+	}else if(status_led == FLASH){
+		if(millis() - StatusUpdateTimer > 500){
+			StatusFlashOn = !StatusFlashOn;
+			StatusUpdateTimer = millis();
+		}
+		digitalWrite(STATUS_LED, StatusFlashOn);
+	}
+	
 }

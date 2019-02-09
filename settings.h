@@ -8,7 +8,7 @@
 
 
 namespace Settings {
-    const int StartAddress = 32;
+    const int StartAddress = 3200;
     const int varSize = 20;
 
 	
@@ -20,9 +20,9 @@ namespace Settings {
 
     // define a struct for storing the settings in EEPROM and instantiate one
     struct SettingsStruct {
-		float targetLatitude;
-        float targetLongitude;
-        float targetAltitude;
+		double targetLatitude;
+        double targetLongitude;
+        double targetAltitude;
     };
 
     // PUT DEFAULTS HERE!
