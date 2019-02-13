@@ -65,11 +65,12 @@ namespace Pilot{
 	SpecGPS::LLA lla_last;
 	
 	SpecGPS::ENU enu_launch;
+	SpecGPS::LLA lla_launch;
 	
 	PID altitudePID(UpdateFreq, 180, -180, altitudeKp, altitudeKd, altitudeKi);
 	PID anglePID(UpdateFreq, -180, 180, angleKp, angleKd, angleKi);
 
-	bool setTarget(SpecBMP180 bmp){
+	bool setTarget(SpecBMP180 &bmp){
 		if(trgtJumper){
 			//If the target aquire jumper is in, read the gps to set the target
 			status_led = FLASH;
@@ -100,25 +101,25 @@ namespace Pilot{
 			#endif
 			
 			//print for debug
-			Serial.println("Target Acquired:");
-			Serial.print("lat: ");
-			Serial.print(lla_target.lat);
-			Serial.print("   lng: ");
-			Serial.print(lla_target.lng);
-			Serial.print("   alt: ");
-			Serial.print(lla_target.alt);
+			// Serial.println("Target Acquired:");
+			// Serial.print("lat: ");
+			// Serial.print(lla_target.lat);
+			// Serial.print("   lng: ");
+			// Serial.print(lla_target.lng);
+			// Serial.print("   alt: ");
+			// Serial.print(lla_target.alt);
 			
 			//save the ecef_target for reference
 			SpecGPS::lla_to_ecef(lla_target, ecef_target);
 			
 			//print for debug
-			Serial.println("ECEF Target:");
-			Serial.print("X: ");
-			Serial.print(ecef_target.x);
-			Serial.print("   y: ");
-			Serial.print(ecef_target.y);
-			Serial.print("   z: ");
-			Serial.print(ecef_target.z);
+			// Serial.println("ECEF Target:");
+			// Serial.print("X: ");
+			// Serial.print(ecef_target.x);
+			// Serial.print("   y: ");
+			// Serial.print(ecef_target.y);
+			// Serial.print("   z: ");
+			// Serial.print(ecef_target.z);
 			
 			//write the target location to memory
 			// set the settings fields coords
@@ -138,14 +139,14 @@ namespace Pilot{
 			//create a ecef version
 			lla_to_ecef(lla_target, ecef_target);
 			
-			Serial.println("Using Target:");
-			Serial.print("lat: ");
-			Serial.print(lla_target.lat);
-			Serial.print("   lng: ");
-			Serial.print(lla_target.lng);
-			Serial.print("   alt: ");
-			Serial.print(lla_target.alt);
-			Serial.println("");
+			// Serial.println("Using Target:");
+			// Serial.print("lat: ");
+			// Serial.print(lla_target.lat);
+			// Serial.print("   lng: ");
+			// Serial.print(lla_target.lng);
+			// Serial.print("   alt: ");
+			// Serial.print(lla_target.alt);
+			// Serial.println("");
 			return true;
 		}
 	}
@@ -155,7 +156,7 @@ namespace Pilot{
 		
     }
 
-    void update(SpecBMP180 bmp){
+    void update(SpecBMP180 &bmp){
 		
 		#ifdef USE_GPS
 		//poll the gps and update the current lla location
@@ -175,29 +176,29 @@ namespace Pilot{
 		}
 		lla_last = lla_current;
 		
-		Serial.println("LLA Target:");
-		Serial.print("Lat: ");
-		Serial.print(lla_target.lat);
-		Serial.print("   lng: ");
-		Serial.print(lla_target.lng);
-		Serial.print("   alt: ");
-		Serial.print(lla_target.alt);
-		Serial.println("");
+		// Serial.println("LLA Target:");
+		// Serial.print("Lat: ");
+		// Serial.print(lla_target.lat);
+		// Serial.print("   lng: ");
+		// Serial.print(lla_target.lng);
+		// Serial.print("   alt: ");
+		// Serial.print(lla_target.alt);
+		// Serial.println("");
 		
-		Serial.println("Current GPS reading:");
-		Serial.print("Lat: ");
-		Serial.print(lla_current.lat);
-		Serial.print("   Lng: ");
-		Serial.print(lla_current.lng);
-		Serial.print("   Alt: ");
-		Serial.print(lla_current.alt);
-		Serial.println("");
-		Serial.print("East: ");
-		Serial.print(enu_current.e);
-		Serial.print("   North: ");
-		Serial.print(enu_current.n);
-		Serial.print("   Up: ");
-		Serial.println(enu_current.u);
+		// Serial.println("Current GPS reading:");
+		// Serial.print("Lat: ");
+		// Serial.print(lla_current.lat);
+		// Serial.print("   Lng: ");
+		// Serial.print(lla_current.lng);
+		// Serial.print("   Alt: ");
+		// Serial.print(lla_current.alt);
+		// Serial.println("");
+		// Serial.print("East: ");
+		// Serial.print(enu_current.e);
+		// Serial.print("   North: ");
+		// Serial.print(enu_current.n);
+		// Serial.print("   Up: ");
+		// Serial.println(enu_current.u);
 				
 		//Serial3.print("E");
 		
@@ -215,11 +216,9 @@ namespace Pilot{
 		float cicleRadi = enu_current.u / pitchRegion2slope;
 		distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
 		
-		Serial.print("Number of sats: ");
-		Serial.println(SpecGPS::gps.satellites.value());
-		
 		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
+			lla_launch = lla_current;
 			
 			pitchState = 1;
 			
@@ -249,14 +248,14 @@ namespace Pilot{
 			//Serial3.println(SpecGPS::gps.location.lat());
 			
 			
-			Serial.print("Distance to target: ");
-			Serial.print(distanceOfPointToOrigin);
-			Serial.print("  Compass Raw: ");
-			Serial.print(SpecQMC5883::heading);
-			Serial.print("  Compass Filtered: ");
-			Serial.println(SpecQMC5883::headingAverage);
-			Serial.print("Course to(yawsetpoint): ");
-			Serial.println(Leveling::yawSetpoint);
+			// Serial.print("Distance to target: ");
+			// Serial.print(distanceOfPointToOrigin);
+			// Serial.print("  Compass Raw: ");
+			// Serial.print(SpecQMC5883::heading);
+			// Serial.print("  Compass Filtered: ");
+			// Serial.println(SpecQMC5883::headingAverage);
+			// Serial.print("Course to(yawsetpoint): ");
+			// Serial.println(Leveling::yawSetpoint);
 			
 			firstLoop = false;
 			return;

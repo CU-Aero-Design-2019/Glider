@@ -34,6 +34,18 @@ namespace Logging{
 		pc;
 		log("Target Alt");
 		pc;
+		log("Launch Lat");
+		pc;
+		log("Launch Lng");
+		pc;
+		log("Launch Alt");
+		pc;
+		log("Launch e");
+		pc;
+		log("Launch n");
+		pc;
+		log("Launch u");
+		pc;
 		log("Current Lat");
 		pc;
 		log("Current Lng");
@@ -82,14 +94,21 @@ namespace Logging{
 		pc;
 		log("Pitch Setpoint Offset");
 		pc;
-		
+		log("BMP Raw");
+		pc;
+		log("GPS Mph");
+		pc;
+		log("GPS Alt (Meters)");
+		pc;
+		log("BMP simp Kal");
+		pc;
 		log("log start time");
 		pc;
 		logln("Log End Time");
 		
     }
 
-    void update(){
+    void update(SpecBMP180 &bmp){
         //Get the current time in millis
 		long startTime = millis();
 		
@@ -113,6 +132,18 @@ namespace Logging{
 		log(Pilot::lla_target.lng,6);
 		pc;
 		log(Pilot::lla_target.alt,6);
+		pc;
+		log(Pilot::lla_launch.lat,6);
+		pc;
+		log(Pilot::lla_launch.lng,6);
+		pc;
+		log(Pilot::lla_launch.alt,6);
+		pc;
+		log(Pilot::enu_launch.e);
+		pc;
+		log(Pilot::enu_launch.n);
+		pc;
+		log(Pilot::enu_launch.u);
 		pc;
 		log(Pilot::lla_current.lat,6);
 		pc;
@@ -162,7 +193,14 @@ namespace Logging{
 		pc;
 		log(Leveling::pitchSetpointOffset);
 		pc;
-		
+		log(bmp.readOffsetAltitude());
+		pc;
+		log(SpecGPS::gps.speed.mph());
+		pc;
+		log(SpecGPS::gps.altitude.meters());
+		pc;
+		log(bmp.getKAlt());
+		pc;
 		log(startTime);
 		pc;
 		logln(millis());

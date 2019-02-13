@@ -90,6 +90,7 @@ void setup(){
 }
 
 void loop(){
+	bmp.update();
 	
 	if(digitalRead(PB15)){
 		if(dockDebounce < 10) dockDebounce ++;
@@ -160,7 +161,7 @@ void loop(){
 
 
 	if(millis() - Logging::UpdateTimer > 1000/Logging::UpdatePeriod){
-        Logging::update();
+        Logging::update(bmp);
         Logging::UpdateTimer = millis();
     }
 	

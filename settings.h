@@ -17,6 +17,8 @@ namespace Settings {
 	double targetAltitude;
 	
 	SpecGPS::LLA readTarget;
+	
+	const bool useMem = false;
 
     // define a struct for storing the settings in EEPROM and instantiate one
     struct SettingsStruct {
@@ -53,7 +55,7 @@ namespace Settings {
             *((char *)&settings + addressOffset) = EEPROM.read(StartAddress + addressOffset);
         }
 		//If the read did not work then use the defult settings 
-		if(settings.targetLatitude < 1){
+		if(settings.targetLatitude < 1 || !useMem){
 			settings = defaultSettings;
 		}
 		
