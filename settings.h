@@ -29,7 +29,7 @@ namespace Settings {
 
     // PUT DEFAULTS HERE!
     SettingsStruct defaultSettings {
-        39.747833,-83.812673, 0,
+        39.747281,-83.813994, 0,
     };
 
 	SettingsStruct settings;

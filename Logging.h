@@ -20,6 +20,8 @@ namespace Logging{
 		pc;
 		log("Num Sats");
 		pc;
+		log("Num Checksum Fails");
+		pc;
 		log("Dock");
 		pc;
 		log("Tow");
@@ -102,6 +104,10 @@ namespace Logging{
 		pc;
 		log("BMP simp Kal");
 		pc;
+		log("Elevator output");
+		pc;
+		log("rudder ouptup");
+		pc;
 		log("log start time");
 		pc;
 		logln("Log End Time");
@@ -118,6 +124,8 @@ namespace Logging{
 		log(startTime/1000);
 		pc;
 		log(SpecGPS::gps.satellites.value());
+		pc;
+		log(SpecGPS::gps.failedChecksum());
 		pc;
 		log(docked);
 		pc;
@@ -200,6 +208,10 @@ namespace Logging{
 		log(SpecGPS::gps.altitude.meters());
 		pc;
 		log(bmp.getKAlt());
+		pc;
+		log(lServo.read());
+		pc;
+		log(rServo.read());
 		pc;
 		log(startTime);
 		pc;

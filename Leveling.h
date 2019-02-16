@@ -71,30 +71,34 @@ namespace Leveling{
 	PID rollPID(UpdateFreq, MaxRollAbs, -MaxRollAbs, rollKp, rollKd, rollKi);
 	PID yawPID(UpdateFreq, RServoMin, RServoMax, yawKp, yawKd, yawKi);
 	
+	int calCount = 0;
 	
-	void calibrate(){
+	const int numOffsetSamples = 50;
+	const int numTareSamples = 30;
+	
+	bool calibrate(){
         digitalWrite(LED_BUILTIN, LOW);
 		status_led = OFF;
 		
-	    for(int i = 0; i < 50; i++){
-			SpecMPU6050::update();
-			delay(10);
+	    if(calCount < 50){
+			calCount++;
+			return false;
 		}
 
 		//Take samples of the raw gyro data to create a baseline for eliminating drift
-		for(int i = 0; i < 50; i++){
-			SpecMPU6050::update();
-			delay(10);
+		if(calCount < 50 + numOffsetSamples){
 			float gyroXSample = SpecMPU6050::gyroX;
 			float gyroYSample = SpecMPU6050::gyroY;
 			float gyroZSample = SpecMPU6050::gyroZ;
 			gyroXoffset += gyroXSample;
 			gyroYoffset += gyroYSample;
 			gyroZoffset += gyroZSample;
+			calCount++;
+			return false;
 		}
-		gyroXoffset /=100;
-		gyroYoffset /=100;
-		gyroZoffset /=100;
+		gyroXoffset /=numOffsetSamples;
+		gyroYoffset /=numOffsetSamples;
+		gyroZoffset /=numOffsetSamples;
 		SpecMPU6050::gyroXoffset = gyroXoffset;
 		SpecMPU6050::gyroYoffset = gyroYoffset;
 		SpecMPU6050::gyroZoffset = gyroZoffset;
@@ -108,33 +112,33 @@ namespace Leveling{
 		SpecMPU6050::angleY = 0;
 		SpecMPU6050::angleZ = 0;
 		
-		for(int i = 0; i < 50; i++){
-			SpecMPU6050::update();
-			delay(10);
+		if(calCount < 80 + numOffsetSamples){
+			calCount++;
+			return false;
 		}
 		
 		tareX = 0;
 		tareY = 0;
 		tareZ = 0;
 		//Take samples of the angle measurements to zero the measures out
-		for(int i = 0; i < 50; i++){
-			SpecMPU6050::update();
-			delay(10);
+		if(calCount < 80 + numOffsetSamples + numTareSamples){
 			float sampleX = SpecMPU6050::angleX;
 			float sampleY = SpecMPU6050::angleY;
 			float sampleZ = SpecMPU6050::angleZ;
 			tareX += sampleX;
 			tareY += sampleY;
 			tareZ += sampleZ;
-			
+			calCount++;
+			return false;
 		}
-		tareX /= 30;
-		tareY /= 30;
-		tareZ /= 30;
+		tareX /= numTareSamples;
+		tareY /= numTareSamples;
+		tareZ /= numTareSamples;
 		Serial.println("Done calibrating");
 		//Serial3.println("Done calibrating");
 
 		digitalWrite(LED_BUILTIN, HIGH);
+		return true;
 	}
 
     void setup(){
@@ -160,12 +164,12 @@ namespace Leveling{
 		// Serial3.print(",");
 		// Serial3.println(tareY);
 		
-		// Serial.print("Angle X: ");
-		// Serial.print(SpecMPU6050::angleX);
-		// Serial.print("  Angle Y: ");
-		// Serial.print(SpecMPU6050::angleY);
-		// Serial.print("  Angle Z: ");
-		// Serial.print(SpecMPU6050::angleZ);
+		Serial.print("Angle X: ");
+		Serial.print(SpecMPU6050::angleX);
+		Serial.print("  Angle Y: ");
+		Serial.print(SpecMPU6050::angleY);
+		Serial.print("  Angle Z: ");
+		Serial.print(SpecMPU6050::angleZ);
 		// Serial.print("  coeffs: ");
 		// Serial.print(SpecMPU6050::gyroCoef);
 		// Serial.println(SpecMPU6050::accCoef);
@@ -188,6 +192,8 @@ namespace Leveling{
 			float finalPitchSetpoint = pitchSetpoint + pitchSetpointOffset;
 			if(finalPitchSetpoint > 0){
 				finalPitchSetpoint = 0;
+			}else if(finalPitchSetpoint < -25){
+				finalPitchSetpoint = -25;
 			}
 			elevatorOut = pitchPID.calculate(finalPitchSetpoint,pitchAngle);
 			// Serial.print("setpoint = ");
@@ -197,11 +203,11 @@ namespace Leveling{
 			// Serial.print("  pitchPIDOut = ");
 			// Serial.println(elevatorOut);
 			
+			//rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
+			rudderOut = yawPID.calculateHeading(yawSetpoint,yawAngle);
 			
-			rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
-			
-			// Serial.print("  yawAngle = ");
-			// Serial.print(yawAngle);
+			Serial.print("  yawAngle = ");
+			Serial.println(yawAngle);
 			// Serial.print("  yawSetpointWoffset = ");
 			// Serial.print(yawSetpoint + yawSetpointOffset);
 			// Serial.print("  yawPIDOut = ");

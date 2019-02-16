@@ -22,7 +22,8 @@ bool targetAquired = false;
 enum led_modes {
   OFF,
   ON,
-  FLASH
+  FLASH,
+  FAST_FLASH
 };
 long StatusUpdateTimer = 0;
 

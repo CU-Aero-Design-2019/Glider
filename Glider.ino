@@ -29,6 +29,7 @@
 SpecBMP180 bmp;
 
 bool StatusFlashOn = false;
+bool doneCali = false;
 
 
 void setup(){
@@ -56,9 +57,7 @@ void setup(){
 
     // GPS setup
     SpecGPS::setup();
-
-    
-
+	
     #ifdef USE_RC
     // Receiver setup
     receiver.setup(Serial3);
@@ -82,11 +81,9 @@ void setup(){
 	
 	
     
-	if (!bmp.begin()) {
+	if (!bmp.begin(50,0)) {
         Serial.println("Could not find a valid BMP085 sensor");
     }
-
-
 }
 
 void loop(){
@@ -143,15 +140,20 @@ void loop(){
     #endif	
 	
     if(millis() - Leveling::UpdateTimer > 1000/Leveling::UpdatePeriod){
-		if(killSwitchVal == 2000){
+		if(doneCali){
+			if(killSwitchVal == 2000){
 			//RIP mode ativate
 			Leveling::fullUpPitch();
 			man_override = true;
+			}else{
+				Leveling::update();
+				man_override = false;
+			}
+			
 		}else{
-			Leveling::update();
-			man_override = false;
+			doneCali = Leveling::calibrate();
 		}
-        Leveling::UpdateTimer = millis();
+		Leveling::UpdateTimer = millis();
     }
 	
 	if(millis() - SpecQMC5883::UpdateTimer > 1000/SpecQMC5883::UpdatePeriod){
@@ -175,6 +177,11 @@ void loop(){
 			StatusUpdateTimer = millis();
 		}
 		digitalWrite(STATUS_LED, StatusFlashOn);
+	}else if(status_led == FAST_FLASH){
+		if(millis() - StatusUpdateTimer > 250){
+			StatusFlashOn = !StatusFlashOn;
+			StatusUpdateTimer = millis();
+		}
+		digitalWrite(STATUS_LED, StatusFlashOn);
 	}
-	
 }
