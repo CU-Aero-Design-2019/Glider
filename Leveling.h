@@ -197,12 +197,13 @@ namespace Leveling{
 			//traditional tail mode
 			
 			
-			float finalPitchSetpoint = pitchSetpoint + pitchSetpointOffset;
-			if(finalPitchSetpoint > 0){
-				finalPitchSetpoint = 0;
-			}else if(finalPitchSetpoint < -25){
-				finalPitchSetpoint = -25;
-			}
+			// float finalPitchSetpoint = pitchSetpoint + pitchSetpointOffset;
+			// if(finalPitchSetpoint > 0){
+				// finalPitchSetpoint = 0;
+			// }else if(finalPitchSetpoint < -25){
+				// finalPitchSetpoint = -25;
+			// }
+			float finalPitchSetpoint = -5;
 			elevatorOut = pitchPID.calculate(finalPitchSetpoint,pitchAngle);
 			// Serial.print("setpoint = ");
 			// Serial.print(pitchSetpoint);
