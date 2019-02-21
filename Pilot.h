@@ -187,20 +187,20 @@ namespace Pilot{
 		// Serial.print(lla_target.alt);
 		// Serial.println("");
 		
-		Serial.println("Current GPS reading:");
-		Serial.print("Lat: ");
-		Serial.print(lla_current.lat);
-		Serial.print("   Lng: ");
-		Serial.print(lla_current.lng);
-		Serial.print("   Alt: ");
-		Serial.print(lla_current.alt);
-		Serial.println("");
-		Serial.print("East: ");
-		Serial.print(enu_current.e);
-		Serial.print("   North: ");
-		Serial.print(enu_current.n);
-		Serial.print("   Up: ");
-		Serial.println(enu_current.u);
+		// Serial.println("Current GPS reading:");
+		// Serial.print("Lat: ");
+		// Serial.print(lla_current.lat);
+		// Serial.print("   Lng: ");
+		// Serial.print(lla_current.lng);
+		// Serial.print("   Alt: ");
+		// Serial.print(lla_current.alt);
+		// Serial.println("");
+		// Serial.print("East: ");
+		// Serial.print(enu_current.e);
+		// Serial.print("   North: ");
+		// Serial.print(enu_current.n);
+		// Serial.print("   Up: ");
+		// Serial.println(enu_current.u);
 				
 		//Serial3.print("E");
 		
@@ -335,10 +335,10 @@ namespace Pilot{
 				//Calculate pitch related metrics 
 				heightOfCourse = distanceOfPointToOrigin*pitchRegion2slope;
 				Leveling::pitchSetpointOffset = altitudePID.calculate(heightOfCourse, enu_current.u);
-				Serial.print("hight of course: ");
-				Serial.print(heightOfCourse);
-				Serial.print(" pitchSetpointOffset: ");
-				Serial.println(Leveling::pitchSetpointOffset);
+				// Serial.print("hight of course: ");
+				// Serial.print(heightOfCourse);
+				// Serial.print(" pitchSetpointOffset: ");
+				// Serial.println(Leveling::pitchSetpointOffset);
 				break;
 			case 3:
 			//if in state three set the pitch pid setpoint to full pull up
@@ -354,16 +354,16 @@ namespace Pilot{
 		// Serial.print("   Current Error Angle: ");
 		// Serial.println(currentErrorAngle);
 		
-		Serial.print("Yaw Error: ");
-		Serial.print(distFromYawCourse);
-		Serial.print("  Yaw Original Setpoint: ");
-		Serial.print(Leveling::yawSetpoint);
-		Serial.print("  Yaw setpoint offset: ");
-		Serial.print(Leveling::yawSetpointOffset);
-		Serial.print("  Yaw setpoint current: ");
-		Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
-		Serial.print("  Yaw Course Slope: ");
-		Serial.println(courseSlope);
+		// Serial.print("Yaw Error: ");
+		// Serial.print(distFromYawCourse);
+		// Serial.print("  Yaw Original Setpoint: ");
+		// Serial.print(Leveling::yawSetpoint);
+		// Serial.print("  Yaw setpoint offset: ");
+		// Serial.print(Leveling::yawSetpointOffset);
+		// Serial.print("  Yaw setpoint current: ");
+		// Serial.print(Leveling::yawSetpoint + Leveling::yawSetpointOffset);
+		// Serial.print("  Yaw Course Slope: ");
+		// Serial.println(courseSlope);
 		
 		// Serial.print("Pitch Setpoint Offset: ");
 		// Serial.print(Leveling::pitchSetpointOffset);

@@ -73,20 +73,23 @@ namespace Leveling{
 	
 	int calCount = 0;
 	
-	const int numOffsetSamples = 50;
+	const int numOffsetSamples = 60;
 	const int numTareSamples = 30;
+	const int wait1 = 60;
+	const int wait2 = 260;
 	
 	bool calibrate(){
         digitalWrite(LED_BUILTIN, LOW);
 		status_led = OFF;
 		
-	    if(calCount < 50){
+	    if(calCount < wait1){
 			calCount++;
+			Serial.println("wait1");
 			return false;
 		}
 
 		//Take samples of the raw gyro data to create a baseline for eliminating drift
-		if(calCount < 50 + numOffsetSamples){
+		if(calCount < wait1 + numOffsetSamples){
 			float gyroXSample = SpecMPU6050::gyroX;
 			float gyroYSample = SpecMPU6050::gyroY;
 			float gyroZSample = SpecMPU6050::gyroZ;
@@ -94,34 +97,38 @@ namespace Leveling{
 			gyroYoffset += gyroYSample;
 			gyroZoffset += gyroZSample;
 			calCount++;
+			Serial.println("offset sampling");
 			return false;
 		}
-		gyroXoffset /=numOffsetSamples;
-		gyroYoffset /=numOffsetSamples;
-		gyroZoffset /=numOffsetSamples;
-		SpecMPU6050::gyroXoffset = gyroXoffset;
-		SpecMPU6050::gyroYoffset = gyroYoffset;
-		SpecMPU6050::gyroZoffset = gyroZoffset;
+		if(calCount == wait1 + numOffsetSamples){
+			gyroXoffset /=numOffsetSamples;
+			gyroYoffset /=numOffsetSamples;
+			gyroZoffset /=numOffsetSamples;
+			SpecMPU6050::gyroXoffset = gyroXoffset;
+			SpecMPU6050::gyroYoffset = gyroYoffset;
+			SpecMPU6050::gyroZoffset = gyroZoffset;
+			
+			
+			//Zero out the gyro measures so that the pre offset applied angles dont get all up in there
+			SpecMPU6050::angleGyroX = 0;
+			SpecMPU6050::angleGyroY = 0;
+			SpecMPU6050::angleGyroZ = 0;
+			SpecMPU6050::angleX = 0;
+			SpecMPU6050::angleY = 0;
+			SpecMPU6050::angleZ = 0;
+			Serial.println("zedroing the angles");
+		}
 		
-		
-		//Zero out the gyro measures so that the pre offset applied angles dont get all up in there
-		SpecMPU6050::angleGyroX = 0;
-		SpecMPU6050::angleGyroY = 0;
-		SpecMPU6050::angleGyroZ = 0;
-		SpecMPU6050::angleX = 0;
-		SpecMPU6050::angleY = 0;
-		SpecMPU6050::angleZ = 0;
-		
-		if(calCount < 80 + numOffsetSamples){
+		if(calCount < wait1 + wait2 + numOffsetSamples){
 			calCount++;
+			tareX = 0;
+			tareY = 0;
+			tareZ = 0;
+			Serial.println("wait2");
 			return false;
 		}
-		
-		tareX = 0;
-		tareY = 0;
-		tareZ = 0;
 		//Take samples of the angle measurements to zero the measures out
-		if(calCount < 80 + numOffsetSamples + numTareSamples){
+		if(calCount < wait1 + wait2 + numOffsetSamples + numTareSamples){
 			float sampleX = SpecMPU6050::angleX;
 			float sampleY = SpecMPU6050::angleY;
 			float sampleZ = SpecMPU6050::angleZ;
@@ -129,6 +136,7 @@ namespace Leveling{
 			tareY += sampleY;
 			tareZ += sampleZ;
 			calCount++;
+			Serial.println("tareSamples");
 			return false;
 		}
 		tareX /= numTareSamples;
@@ -165,11 +173,11 @@ namespace Leveling{
 		// Serial3.println(tareY);
 		
 		Serial.print("Angle X: ");
-		Serial.print(SpecMPU6050::angleX);
+		Serial.print(SpecMPU6050::angleX - tareX);
 		Serial.print("  Angle Y: ");
-		Serial.print(SpecMPU6050::angleY);
+		Serial.print(SpecMPU6050::angleY - tareY);
 		Serial.print("  Angle Z: ");
-		Serial.print(SpecMPU6050::angleZ);
+		Serial.print(SpecMPU6050::angleZ - tareZ);
 		// Serial.print("  coeffs: ");
 		// Serial.print(SpecMPU6050::gyroCoef);
 		// Serial.println(SpecMPU6050::accCoef);
