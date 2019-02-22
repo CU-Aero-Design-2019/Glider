@@ -23,7 +23,7 @@ namespace Leveling{
 	
 	const float MaxPitchAngle = 60;
 	float MinPitchAngle = -80;
-	float pitchKp = .7;
+	float pitchKp = .5;
 	float pitchKd = 0;
 	float pitchKi = 0;
 
@@ -32,8 +32,8 @@ namespace Leveling{
 	float rollKd = 0;
 	float rollKi = 0;
 	
-	float yawKp = .7;
-	float yawKd = 0;
+	float yawKp = 1.5;
+	float yawKd = 0.01;
 	float yawKi = 0;
 	
 	float pitchSetpoint = 0;
@@ -59,8 +59,9 @@ namespace Leveling{
 	
 	float rudderOut=0;
 	float elevatorOut=0;
-	
 	float pitchAngle = 0;
+	
+	float yawAngle = 0;
 	
 	
 	//0 is manual mode, 1 is flying wing mode, 2 is tradition tail mode
@@ -163,8 +164,8 @@ namespace Leveling{
     }
 
     void update(){
-        pitchAngle = -(SpecMPU6050::angleY - tareY);
-		float yawAngle = SpecQMC5883::headingAverage;
+        pitchAngle = (SpecMPU6050::angleY - tareY);
+		yawAngle = SpecMPU6050::angleZ;
 		// Serial3.print("E");
 		// Serial3.print(SpecMPU6050::angleY);
 		// Serial3.print(",");
@@ -177,7 +178,7 @@ namespace Leveling{
 		Serial.print("  Angle Y: ");
 		Serial.print(SpecMPU6050::angleY - tareY);
 		Serial.print("  Angle Z: ");
-		Serial.print(SpecMPU6050::angleZ - tareZ);
+		Serial.print(SpecMPU6050::angleZraw);
 		// Serial.print("  coeffs: ");
 		// Serial.print(SpecMPU6050::gyroCoef);
 		// Serial.println(SpecMPU6050::accCoef);
@@ -203,8 +204,8 @@ namespace Leveling{
 			// }else if(finalPitchSetpoint < -25){
 				// finalPitchSetpoint = -25;
 			// }
-			float finalPitchSetpoint = -5;
-			elevatorOut = pitchPID.calculate(finalPitchSetpoint,pitchAngle);
+			
+			elevatorOut = pitchPID.calculate(pitchSetpoint,pitchAngle);
 			// Serial.print("setpoint = ");
 			// Serial.print(pitchSetpoint);
 			// Serial.print("  pitchAngle = ");
@@ -215,8 +216,6 @@ namespace Leveling{
 			//rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
 			rudderOut = yawPID.calculateHeading(yawSetpoint,yawAngle);
 			
-			Serial.print("  yawAngle = ");
-			Serial.println(yawAngle);
 			// Serial.print("  yawSetpointWoffset = ");
 			// Serial.print(yawSetpoint + yawSetpointOffset);
 			// Serial.print("  yawPIDOut = ");
@@ -226,6 +225,8 @@ namespace Leveling{
 			rServoOutput = RServoMidPoint - rudderOut;
 		}
 		
+		Serial.print("  yaw angle: ");
+		Serial.print(yawAngle);
 		
 		// Serial.print("Right: ");
 		// Serial.print(rServo.read());

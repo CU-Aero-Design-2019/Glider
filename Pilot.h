@@ -157,7 +157,7 @@ namespace Pilot{
     }
 
     void update(SpecBMP180 &bmp){
-		
+		pitchState = 2;
 		#ifdef USE_GPS
 		//poll the gps and update the current lla location
 		lla_current.lat = SpecGPS::gps.location.lat();
@@ -218,6 +218,10 @@ namespace Pilot{
 		float cicleRadi = enu_current.u / pitchRegion2slope;
 		distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
 		
+					
+		Serial.print("  Compass = ");
+		Serial.println(SpecQMC5883::headingAverage);
+		
 		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
 			lla_launch = lla_current;
@@ -227,7 +231,7 @@ namespace Pilot{
 			courseTo = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
 				lla_target.lng);
 				
-			Leveling::yawSetpoint = courseTo;
+			
 			
 			// Serial3.print(SpecQMC5883::headingAverage);
 			// Serial3.print(",");
@@ -246,9 +250,8 @@ namespace Pilot{
 			// Serial.print(Leveling::yawSetpoint);
 			// Serial.print("  pitchSetpointWillbe: ");
 			// Serial.println(-pitchRegion2angle);
-			//Serial3.print("lat: ");
-			//Serial3.println(SpecGPS::gps.location.lat());
-			
+			// Serial3.print("lat: ");
+			// Serial3.println(SpecGPS::gps.location.lat());
 			
 			// Serial.print("Distance to target: ");
 			// Serial.print(distanceOfPointToOrigin);
@@ -259,12 +262,19 @@ namespace Pilot{
 			// Serial.print("Course to(yawsetpoint): ");
 			// Serial.println(Leveling::yawSetpoint);
 			
+			SpecMPU6050::angleZatLaunch = SpecMPU6050::angleZraw;
+			SpecMPU6050::compassAtlaunch = SpecQMC5883::headingAverage;
+			
+			//Set the yaw setpoint to the course to value
+			//Leveling::yawSetpoint = courseTo;
+			Leveling::yawSetpoint = SpecMPU6050::angleZatLaunch;
+			
 			firstLoop = false;
 			return;
 		}
 		distanceOfPointToLaunch = sqrt(pow(enu_current.e - enu_launch.e,2) + pow(enu_current.n - enu_launch.n,2));
 		
-		Leveling::pitchSetpoint = -pitchRegion2angle;
+		//Leveling::pitchSetpoint = -pitchRegion2angle;
 		
 		//compare the enu location to the course to find current distance off course		
 		//using yaw setpoint as the courseTo value
@@ -315,34 +325,39 @@ namespace Pilot{
 		
 		
 		//Lock into state 2 for now
-		pitchState = 2;
-		// if(enu_current.u < 3){
-			// pitchState = 3;
-		// }
-		// else if(cicleRadi >= distanceOfPointToOrigin){
-			// pitchState = 2;
-		// }
+		
+		if(distanceOfPointToOrigin < 12){
+			if(enu_current.u > 5){
+				pitchState = 1;
+			}else{
+				pitchState = 3;
+			}
+		}
 			
 		
 		switch (pitchState){
 			case 1:
-			//if in state one run a call on the PID using the current air speed as the process variable, with the stall speed times
-			//some constant as the setpoint
-				Leveling::pitchSetpointOffset = altitudePID.calculate(pitchRegion1TargetSpeed, SpecGPS::gps.speed.mps());
+			//if in state one, above target and above pull up hight, dive hard
+				Leveling::pitchSetpoint = -90;
 				break;
 			case 2:
-			//if in state two use logic similar to the yaw PID to stay on a slope to target
-				//Calculate pitch related metrics 
-				heightOfCourse = distanceOfPointToOrigin*pitchRegion2slope;
-				Leveling::pitchSetpointOffset = altitudePID.calculate(heightOfCourse, enu_current.u);
-				// Serial.print("hight of course: ");
-				// Serial.print(heightOfCourse);
-				// Serial.print(" pitchSetpointOffset: ");
-				// Serial.println(Leveling::pitchSetpointOffset);
+			// //if in state two use logic similar to the yaw PID to stay on a slope to target
+				// //Calculate pitch related metrics 
+				// heightOfCourse = distanceOfPointToOrigin*pitchRegion2slope;
+				// Leveling::pitchSetpointOffset = altitudePID.calculate(heightOfCourse, enu_current.u);
+				// // Serial.print("hight of course: ");
+				// // Serial.print(heightOfCourse);
+				// // Serial.print(" pitchSetpointOffset: ");
+				// // Serial.println(Leveling::pitchSetpointOffset);
+				
+				
+				//for now just use -14
+				Leveling::pitchSetpoint = 0;
+				
 				break;
 			case 3:
 			//if in state three set the pitch pid setpoint to full pull up
-				Leveling::pitchSetpointOffset = 90;
+				Leveling::pitchSetpoint = 90;
 				break;
 		}
 
