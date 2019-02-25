@@ -56,6 +56,8 @@ namespace Pilot{
 	
 	float heightOfCourse = 0;
 	
+	bool hasLock = false;
+	
 	SpecGPS::ECEF ecef_target;
 	SpecGPS::LLA lla_target;
 	
@@ -166,10 +168,13 @@ namespace Pilot{
 		#endif		
 		if(lla_current.lat < 1){
 			status_led = FLASH;
+			hasLock = false;
 		}else if(SpecGPS::gps.satellites.value() > 4){
 			status_led = ON;
+			hasLock = true;
 		}else{
 			status_led = FAST_FLASH;
+		
 		}
 		
 		if(!SpecGPS::equals(lla_last, lla_current)){
@@ -266,8 +271,8 @@ namespace Pilot{
 			SpecMPU6050::compassAtlaunch = SpecQMC5883::headingAverage;
 			
 			//Set the yaw setpoint to the course to value
-			//Leveling::yawSetpoint = courseTo;
-			Leveling::yawSetpoint = SpecMPU6050::angleZatLaunch;
+			Leveling::yawSetpoint = courseTo;
+			//Leveling::yawSetpoint = Leveling::yawAngle;
 			
 			firstLoop = false;
 			return;
@@ -326,7 +331,7 @@ namespace Pilot{
 		
 		//Lock into state 2 for now
 		
-		if(distanceOfPointToOrigin < 12){
+		if(distanceOfPointToOrigin < 12 && hasLock){
 			if(enu_current.u > 5){
 				pitchState = 1;
 			}else{
@@ -352,7 +357,7 @@ namespace Pilot{
 				
 				
 				//for now just use -14
-				Leveling::pitchSetpoint = 0;
+				Leveling::pitchSetpoint = -14;
 				
 				break;
 			case 3:

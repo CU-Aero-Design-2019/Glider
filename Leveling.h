@@ -18,8 +18,8 @@ namespace Leveling{
 	int RServoMin = 10;
 	int LServoMax = 170;
 	int LServoMin = 65;
-	int RServoMidPoint = 98;
-	int LServoMidPoint = 105;
+	int RServoMidPoint = 105;
+	int LServoMidPoint = 115;
 	
 	const float MaxPitchAngle = 60;
 	float MinPitchAngle = -80;
@@ -164,7 +164,7 @@ namespace Leveling{
     }
 
     void update(){
-        pitchAngle = (SpecMPU6050::angleY - tareY);
+        pitchAngle = -(SpecMPU6050::angleY - tareY);
 		yawAngle = SpecMPU6050::angleZ;
 		// Serial3.print("E");
 		// Serial3.print(SpecMPU6050::angleY);
