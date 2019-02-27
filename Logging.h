@@ -20,8 +20,6 @@ namespace Logging{
 		pc;
 		log("Num Sats");
 		pc;
-		log("Num Checksum Fails");
-		pc;
 		log("Dock");
 		pc;
 		log("Tow");
@@ -78,8 +76,6 @@ namespace Logging{
 		pc;
 		log("Gyro Z");
 		pc;
-		log("gps course");
-		pc;
 		log("Yaw Course Error");
 		pc;
 		log("Yaw Error angle");
@@ -98,10 +94,6 @@ namespace Logging{
 		pc;
 		log("BMP Raw");
 		pc;
-		log("GPS Mph");
-		pc;
-		log("GPS Alt (Meters)");
-		pc;
 		log("BMP simp Kal");
 		pc;
 		log("Elevator output");
@@ -119,13 +111,12 @@ namespace Logging{
 		long startTime = millis();
 		
 		//Log the things
-		log(SpecGPS::gps.time.value());
+		log(String(SpecGPS::ubg.getDay()) + String(SpecGPS::ubg.getHour()) + String(SpecGPS::ubg.getMin()) + 
+        			 String(SpecGPS::ubg.getSec()) + String(SpecGPS::ubg.getNanoSec()).substring(0, 1));
 		pc;
 		log(startTime/1000);
 		pc;
-		log(SpecGPS::gps.satellites.value());
-		pc;
-		log(SpecGPS::gps.failedChecksum());
+		log(SpecGPS::ubg.getNumSatellites());
 		pc;
 		log(docked);
 		pc;
@@ -183,8 +174,6 @@ namespace Logging{
 		pc;
 		log(SpecMPU6050::angleZ);
 		pc;
-		log(SpecGPS::gps.course.deg());
-		pc;
 		log(Pilot::distFromYawCourse);
 		pc;
 		log(Pilot::currentErrorAngle);
@@ -202,10 +191,6 @@ namespace Logging{
 		log(Leveling::pitchSetpointOffset);
 		pc;
 		log(bmp.readOffsetAltitude());
-		pc;
-		log(SpecGPS::gps.speed.mph());
-		pc;
-		log(SpecGPS::gps.altitude.meters());
 		pc;
 		log(bmp.getKAlt());
 		pc;

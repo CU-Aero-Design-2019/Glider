@@ -84,7 +84,7 @@ namespace Pilot{
 			
 			#ifdef USE_GPS
 			//wait till a valid non-zero value is provided
-			if(SpecGPS::gps.location.lat() == 0){
+			if(SpecGPS::ubg.getLatitude_deg() == 0){
 				Serial.println("Waiting for GPS data");
 				return false;
 			}else if(numGoodPoints < 100){
@@ -97,8 +97,8 @@ namespace Pilot{
 			}
 			
 			//set the lla target to the current gps lla
-			lla_target.lat = SpecGPS::gps.location.lat();
-			lla_target.lng = SpecGPS::gps.location.lng();
+			lla_target.lat = SpecGPS::ubg.getLatitude_deg();
+			lla_target.lng = SpecGPS::ubg.getLongitude_deg();
 			lla_target.alt = bmp.readAvgOffsetAltitude();
 			#endif
 			
@@ -162,14 +162,14 @@ namespace Pilot{
 		pitchState = 2;
 		#ifdef USE_GPS
 		//poll the gps and update the current lla location
-		lla_current.lat = SpecGPS::gps.location.lat();
-		lla_current.lng = SpecGPS::gps.location.lng();
-		lla_current.alt = bmp.readAvgOffsetAltitude();
+		lla_current.lat = SpecGPS::ubg.getLatitude_deg();
+		lla_current.lng = SpecGPS::ubg.getLongitude_deg();
+		lla_current.alt = bmp.getKAlt();
 		#endif		
-		if(lla_current.lat < 1){
+		if(abs(lla_current.lat - lla_target.lat) > 1 || abs(lla_current.lng - lla_target.lng) > 1){
 			status_led = FLASH;
 			hasLock = false;
-		}else if(SpecGPS::gps.satellites.value() > 4){
+		}else if(SpecGPS::ubg.getNumSatellites() > 4){
 			status_led = ON;
 			hasLock = true;
 		}else{
@@ -192,13 +192,13 @@ namespace Pilot{
 		// Serial.print(lla_target.alt);
 		// Serial.println("");
 		
-		// Serial.println("Current GPS reading:");
-		// Serial.print("Lat: ");
-		// Serial.print(lla_current.lat);
-		// Serial.print("   Lng: ");
-		// Serial.print(lla_current.lng);
-		// Serial.print("   Alt: ");
-		// Serial.print(lla_current.alt);
+		Serial.println("Current GPS reading:");
+		Serial.print("Lat: ");
+		Serial.print(lla_current.lat);
+		Serial.print("   Lng: ");
+		Serial.print(lla_current.lng);
+		Serial.print("   Alt: ");
+		Serial.print(lla_current.alt);
 		// Serial.println("");
 		// Serial.print("East: ");
 		// Serial.print(enu_current.e);
@@ -233,7 +233,7 @@ namespace Pilot{
 			
 			pitchState = 1;
 			
-			courseTo = SpecGPS::gps.courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
+			courseTo = SpecGPS::courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
 				lla_target.lng);
 				
 			
@@ -256,7 +256,6 @@ namespace Pilot{
 			// Serial.print("  pitchSetpointWillbe: ");
 			// Serial.println(-pitchRegion2angle);
 			// Serial3.print("lat: ");
-			// Serial3.println(SpecGPS::gps.location.lat());
 			
 			// Serial.print("Distance to target: ");
 			// Serial.print(distanceOfPointToOrigin);

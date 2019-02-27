@@ -132,7 +132,7 @@ namespace Leveling{
 		if(calCount < wait1 + wait2 + numOffsetSamples + numTareSamples){
 			float sampleX = SpecMPU6050::angleX;
 			float sampleY = SpecMPU6050::angleY;
-			float sampleZ = SpecMPU6050::angleZ;
+			float sampleZ = SpecMPU6050::angleZraw;
 			tareX += sampleX;
 			tareY += sampleY;
 			tareZ += sampleZ;

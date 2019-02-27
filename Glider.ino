@@ -85,9 +85,15 @@ void setup(){
         Serial.println("Could not find a valid BMP085 sensor");
     }
 }
-
+bool bmpBaselined = false;
 void loop(){
-	bmp.update();
+	
+	if (millis() > 2000 && !bmpBaselined) {
+		bmp.resetOffset();
+		bmpBaselined = true;
+	} else {
+		bmp.update();
+	}
 	
 	if(digitalRead(PB15)){
 		if(dockDebounce < 10) dockDebounce ++;
