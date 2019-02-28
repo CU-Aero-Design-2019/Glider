@@ -213,8 +213,8 @@ namespace Leveling{
 			// Serial.print("  pitchPIDOut = ");
 			// Serial.println(elevatorOut);
 			
-			//rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
-			rudderOut = yawPID.calculateHeading(yawSetpoint,yawAngle);
+			rudderOut = yawPID.calculateHeading(yawSetpoint + yawSetpointOffset,yawAngle);
+			//rudderOut = yawPID.calculateHeading(yawSetpoint,yawAngle);
 			
 			// Serial.print("  yawSetpointWoffset = ");
 			// Serial.print(yawSetpoint + yawSetpointOffset);

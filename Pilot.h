@@ -1,7 +1,7 @@
 #ifndef PILOT_H
 #define PILOT_H
 
-#define USE_GPS
+//#define USE_GPS
 
 #define STATUS_LED PA5
 
@@ -42,7 +42,8 @@ namespace Pilot{
 	float courseSlope = 0;
 	double slopeSquared = 0;
 	
-	float courseTo = 0;
+	float courseToAtLaunch = 0;
+	float courseTo;
 	
 	bool firstLoop = true;
 	
@@ -226,6 +227,8 @@ namespace Pilot{
 					
 		Serial.print("  Compass = ");
 		Serial.println(SpecQMC5883::headingAverage);
+		courseTo = SpecGPS::courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
+				lla_target.lng);
 		
 		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
@@ -233,10 +236,7 @@ namespace Pilot{
 			
 			pitchState = 1;
 			
-			courseTo = SpecGPS::courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
-				lla_target.lng);
-				
-			
+			courseToAtLaunch = courseTo;
 			
 			// Serial3.print(SpecQMC5883::headingAverage);
 			// Serial3.print(",");

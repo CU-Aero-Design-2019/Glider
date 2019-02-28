@@ -4,6 +4,7 @@
 #include "settings.h"
 #include <SpecGPS.h>
 #include <SpecBMP180.h>
+#include "serialParse.h"
 
 // struct to hold serial communication stuff
 namespace USB {
@@ -67,6 +68,8 @@ namespace USB {
 					Serial.write(Serial2.read());
 				}
 			}
+		}else{
+			parse(incoming);
 		}
     }
 
