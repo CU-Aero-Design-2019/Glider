@@ -59,6 +59,14 @@ namespace Pilot{
 	
 	bool hasLock = false;
 	
+	const int histLength = 10;
+	int headingHist[histLength];
+	int histCounter = 0;
+	
+	long lastGyroZero = 0;
+	
+	int trustMagCount = 0;
+	
 	SpecGPS::ECEF ecef_target;
 	SpecGPS::LLA lla_target;
 	
@@ -167,13 +175,19 @@ namespace Pilot{
 		lla_current.lng = SpecGPS::ubg.getLongitude_deg();
 		lla_current.alt = bmp.getKAlt();
 		#endif		
-		if(abs(lla_current.lat - lla_target.lat) > 1 || abs(lla_current.lng - lla_target.lng) > 1){
+		if(!doneCali){
+			//Do nothing if the gyro isnt done calibrating
+		}else if(SpecGPS::ubg.getFixType() == 0 /* NO_FIX */ ||
+		SpecGPS::ubg.getFixType() == 1/*DEAD_RECKONING*/ || 
+		SpecGPS::ubg.getFixType() == 4/*GNSS_AND_DEAD_RECKONING*/ ||
+		SpecGPS::ubg.getFixType() == 5/*TIME_ONLY*/){
 			status_led = FLASH;
 			hasLock = false;
-		}else if(SpecGPS::ubg.getNumSatellites() > 4){
+		}else if(SpecGPS::ubg.getFixType() == 3/*FIX_3D*/){
 			status_led = ON;
 			hasLock = true;
 		}else{
+			//In 2D fix so flash fast
 			status_led = FAST_FLASH;
 		
 		}
@@ -193,13 +207,13 @@ namespace Pilot{
 		// Serial.print(lla_target.alt);
 		// Serial.println("");
 		
-		Serial.println("Current GPS reading:");
-		Serial.print("Lat: ");
-		Serial.print(lla_current.lat);
-		Serial.print("   Lng: ");
-		Serial.print(lla_current.lng);
-		Serial.print("   Alt: ");
-		Serial.print(lla_current.alt);
+		// Serial.println("Current GPS reading:");
+		// Serial.print("Lat: ");
+		// Serial.print(lla_current.lat);
+		// Serial.print("   Lng: ");
+		// Serial.print(lla_current.lng);
+		// Serial.print("   Alt: ");
+		// Serial.print(lla_current.alt);
 		// Serial.println("");
 		// Serial.print("East: ");
 		// Serial.print(enu_current.e);
@@ -224,11 +238,11 @@ namespace Pilot{
 		float cicleRadi = enu_current.u / pitchRegion2slope;
 		distanceOfPointToOrigin = sqrt(pow(enu_current.e, 2) + pow(enu_current.n, 2));
 		
-					
-		Serial.print("  Compass = ");
-		Serial.println(SpecQMC5883::headingAverage);
 		courseTo = SpecGPS::courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
 				lla_target.lng);
+		
+		headingHist[histCounter] = SpecQMC5883::headingAverage;
+			histCounter = (histCounter + 1) % histLength;
 		
 		if(docked || towed || firstLoop){
 			enu_launch = enu_current;
@@ -265,9 +279,10 @@ namespace Pilot{
 			// Serial.println(SpecQMC5883::headingAverage);
 			// Serial.print("Course to(yawsetpoint): ");
 			// Serial.println(Leveling::yawSetpoint);
-			
+		
 			SpecMPU6050::angleZatLaunch = SpecMPU6050::angleZraw;
-			SpecMPU6050::compassAtlaunch = SpecQMC5883::headingAverage;
+			SpecMPU6050::compassAtlaunch = headingHist[histCounter]; //Set compass at launch to oldest heading in history
+			lastGyroZero = millis();
 			
 			//Set the yaw setpoint to the course to value
 			Leveling::yawSetpoint = courseTo;
@@ -276,6 +291,34 @@ namespace Pilot{
 			firstLoop = false;
 			return;
 		}
+		
+		if(Leveling::pitchAngle > -20 && Leveling::pitchAngle < 10 && millis()-lastGyroZero > 1500){
+			bool tooBigDiffrence = false;
+			for(int i = 1; i < histLength; i++){
+				if(abs(headingHist[i-1] - headingHist[i]) > 5){
+					tooBigDiffrence = true;
+				}
+			}
+			if(trustMagCount >= 15 && !tooBigDiffrence){
+				SpecMPU6050::angleZatLaunch = SpecMPU6050::angleZraw;
+				SpecMPU6050::compassAtlaunch = SpecQMC5883::headingAverage; //Set compass at launch to oldest heading in history	
+				lastGyroZero = millis();
+				Serial.println("DidUpdate");
+			}else{
+				trustMagCount++;
+			}
+		}else{
+			trustMagCount = 0;
+		}
+		Serial.print("AngleZraw: ");
+		Serial.print(SpecMPU6050::angleZraw);
+		Serial.print("  Compass: ");
+		Serial.print(SpecQMC5883::headingAverage);
+		Serial.print("  Yaw angle: ");
+		Serial.println(Leveling::yawAngle);
+		
+		//Set the yaw setpoint to the course to value
+		Leveling::yawSetpoint = courseTo;
 		distanceOfPointToLaunch = sqrt(pow(enu_current.e - enu_launch.e,2) + pow(enu_current.n - enu_launch.n,2));
 		
 		//Leveling::pitchSetpoint = -pitchRegion2angle;
@@ -330,8 +373,8 @@ namespace Pilot{
 		
 		//Lock into state 2 for now
 		
-		if(distanceOfPointToOrigin < 12 && hasLock){
-			if(enu_current.u > 5){
+		if(distanceOfPointToOrigin < 12){
+			if(SpecGPS::ubg.getGroundSpeed_ms() > 0){
 				pitchState = 1;
 			}else{
 				pitchState = 3;
@@ -341,8 +384,10 @@ namespace Pilot{
 		
 		switch (pitchState){
 			case 1:
-			//if in state one, above target and above pull up hight, dive hard
-				Leveling::pitchSetpoint = -90;
+			//if in state one, above target and moving forward, pull up slightly
+				if(Leveling::pitchSetpoint < 0){
+					Leveling::pitchSetpoint = Leveling::pitchSetpoint+0.5;
+				}
 				break;
 			case 2:
 			// //if in state two use logic similar to the yaw PID to stay on a slope to target
@@ -354,14 +399,20 @@ namespace Pilot{
 				// // Serial.print(" pitchSetpointOffset: ");
 				// // Serial.println(Leveling::pitchSetpointOffset);
 				
-				
-				//for now just use -14
-				Leveling::pitchSetpoint = -14;
+				if(abs(Leveling::yawAngle - Leveling::yawSetpoint) > 15){
+					//Pitch Setpoint for when doing a large turn
+					Leveling::pitchSetpoint = -20;
+				}else{
+					//Pitch Setpoint for when in normal mode
+					Leveling::pitchSetpoint = -14;
+				}
 				
 				break;
 			case 3:
-			//if in state three set the pitch pid setpoint to full pull up
-				Leveling::pitchSetpoint = 90;
+			//if in state three, over target and moving backward, dive slightly
+				if(Leveling::pitchSetpoint > -25){
+					Leveling::pitchSetpoint = Leveling::pitchSetpoint-0.5;
+				}
 				break;
 		}
 

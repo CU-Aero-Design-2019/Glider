@@ -173,12 +173,12 @@ namespace Leveling{
 		// Serial3.print(",");
 		// Serial3.println(tareY);
 		
-		Serial.print("Angle X: ");
-		Serial.print(SpecMPU6050::angleX - tareX);
-		Serial.print("  Angle Y: ");
-		Serial.print(SpecMPU6050::angleY - tareY);
-		Serial.print("  Angle Z: ");
-		Serial.print(SpecMPU6050::angleZraw);
+		// Serial.print("Angle X: ");
+		// Serial.print(SpecMPU6050::angleX - tareX);
+		// Serial.print("  Angle Y: ");
+		// Serial.print(SpecMPU6050::angleY - tareY);
+		// Serial.print("  Angle Z: ");
+		// Serial.print(SpecMPU6050::angleZraw);
 		// Serial.print("  coeffs: ");
 		// Serial.print(SpecMPU6050::gyroCoef);
 		// Serial.println(SpecMPU6050::accCoef);
@@ -224,9 +224,6 @@ namespace Leveling{
 			lServoOutput = LServoMidPoint - elevatorOut;
 			rServoOutput = RServoMidPoint - rudderOut;
 		}
-		
-		Serial.print("  yaw angle: ");
-		Serial.print(yawAngle);
 		
 		// Serial.print("Right: ");
 		// Serial.print(rServo.read());

@@ -16,7 +16,7 @@ bool docked = true;
 bool towed = true;
 bool trgtJumper = false;
 bool man_override = false;
-
+bool doneCali = false;
 bool targetAquired = false;
 
 enum led_modes {

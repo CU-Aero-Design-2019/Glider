@@ -29,7 +29,7 @@
 SpecBMP180 bmp;
 
 bool StatusFlashOn = false;
-bool doneCali = false;
+
 
 
 void setup(){
@@ -95,16 +95,17 @@ void loop(){
 		bmp.update();
 	}
 	
-	if(digitalRead(PB15)){
-		if(dockDebounce < 10) dockDebounce ++;
-	}else{
-		if(dockDebounce > 0) dockDebounce --;
-	}	
-	if(dockDebounce > 9){
-		docked = true;
-	}else if(dockDebounce < 1){
-		docked = false;
-	}
+	// if(digitalRead(PB15)){
+		// if(dockDebounce < 10) dockDebounce ++;
+	// }else{
+		// if(dockDebounce > 0) dockDebounce --;
+	// }	
+	// if(dockDebounce > 9){
+		// docked = true;
+	// }else if(dockDebounce < 1){
+		// docked = false;
+	// }
+	docked = digitalRead(PB15);
 	towed = digitalRead(PB13);
 	trgtJumper = digitalRead(PB14);
 	
