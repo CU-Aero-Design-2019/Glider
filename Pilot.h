@@ -67,6 +67,15 @@ namespace Pilot{
 	
 	int trustMagCount = 0;
 	
+	// heading average
+	const int numSamps = 10;
+	float cosines[numSamps];
+	float sines[numSamps];
+	float cosineSum = 0;
+	float sineSum = 0;
+	int sampleCount = 0;
+	float bearing = 0;
+	
 	SpecGPS::ECEF ecef_target;
 	SpecGPS::LLA lla_target;
 	
@@ -166,8 +175,34 @@ namespace Pilot{
 		
 		
     }
+	
+	void updateAverageHeading(){		
+		cosineSum -= cosines[sampleCount];
+		sineSum -= sines[sampleCount];
+		
+		cosines[sampleCount] = cos(SpecGPS::ubg.getMotionHeading_rad());
+		sines[sampleCount] = sin(SpecGPS::ubg.getMotionHeading_rad());
+		
+		cosineSum += cosines[sampleCount];
+		sineSum += sines[sampleCount];
+		
+		float avgCos = cosineSum/numSamps;
+		float avgSin = sineSum/numSamps;
+		
+		float theta = atan(avgSin/avgCos) * RAD_TO_DEG;
+		
+		if(avgCos < 0.0){
+			theta += 180;
+		}else if(avgSin < 0.0){
+			theta +=360;
+		}
+		sampleCount++;
+		sampleCount = sampleCount%numSamps;
+		bearing = theta;
+	}
 
     void update(SpecBMP180 &bmp){
+		updateAverageHeading();
 		pitchState = 2;
 		#ifdef USE_GPS
 		//poll the gps and update the current lla location
@@ -241,7 +276,8 @@ namespace Pilot{
 		courseTo = SpecGPS::courseTo(lla_current.lat,lla_current.lng,lla_target.lat,
 				lla_target.lng);
 		
-		headingHist[histCounter] = SpecQMC5883::headingAverage;
+		//headingHist[histCounter] = SpecQMC5883::headingAverage;
+		headingHist[histCounter] = bearing;
 			histCounter = (histCounter + 1) % histLength;
 		
 		if(docked || towed || firstLoop){
@@ -292,30 +328,30 @@ namespace Pilot{
 			return;
 		}
 		
-		if(Leveling::pitchAngle > -20 && Leveling::pitchAngle < 10 && millis()-lastGyroZero > 1500){
-			bool tooBigDiffrence = false;
-			for(int i = 1; i < histLength; i++){
-				if(abs(headingHist[i-1] - headingHist[i]) > 5){
-					tooBigDiffrence = true;
-				}
-			}
-			if(trustMagCount >= 15 && !tooBigDiffrence){
+		if(Leveling::pitchAngle > -30 && Leveling::pitchAngle < 30 && millis()-lastGyroZero > 1500){
+			// bool tooBigDiffrence = false;
+			// for(int i = 1; i < histLength; i++){
+				// if(abs(headingHist[i-1] - headingHist[i]) > 5){
+					// tooBigDiffrence = true;
+				// }
+			// }
+			// if(trustMagCount >= 15 && !tooBigDiffrence){
+			if(trustMagCount >= 15){	
 				SpecMPU6050::angleZatLaunch = SpecMPU6050::angleZraw;
-				SpecMPU6050::compassAtlaunch = SpecQMC5883::headingAverage; //Set compass at launch to oldest heading in history	
+				SpecMPU6050::compassAtlaunch = bearing; //Set compass at launch to oldest heading in history	
 				lastGyroZero = millis();
-				Serial.println("DidUpdate");
 			}else{
 				trustMagCount++;
 			}
 		}else{
 			trustMagCount = 0;
 		}
-		Serial.print("AngleZraw: ");
-		Serial.print(SpecMPU6050::angleZraw);
-		Serial.print("  Compass: ");
-		Serial.print(SpecQMC5883::headingAverage);
-		Serial.print("  Yaw angle: ");
-		Serial.println(Leveling::yawAngle);
+		// Serial.print("AngleZraw: ");
+		// Serial.print(SpecMPU6050::angleZraw);
+		// Serial.print("  Compass: ");
+		// Serial.print(SpecQMC5883::headingAverage);
+		// Serial.print("  Yaw angle: ");
+		// Serial.println(Leveling::yawAngle);
 		
 		//Set the yaw setpoint to the course to value
 		Leveling::yawSetpoint = courseTo;

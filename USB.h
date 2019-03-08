@@ -68,6 +68,32 @@ namespace USB {
 					Serial.write(Serial2.read());
 				}
 			}
+		}else if(incoming.substring(0, 3).equals("SPE")){
+			bool newTing = false;
+			while(true){
+				while(Serial.available()){
+					Serial3.write(Serial.read());
+				}
+				if(Serial3.available()){
+					delay(3);
+					
+				}
+				while(Serial3.available()){
+					Serial.print(String(Serial3.read(),HEX));
+					Serial.print(",");
+					newTing =true;
+				}
+				if(newTing){
+					Serial.println();
+					newTing = false;
+				}
+			}
+		}else if(incoming.substring(0, 3).equals("TTM")){
+			while(true){
+				while(Serial3.available()){
+					Serial.print(Serial3.read());
+				}
+			}
 		}else{
 			parse(incoming);
 		}

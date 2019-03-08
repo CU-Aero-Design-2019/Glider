@@ -18,8 +18,8 @@ namespace Leveling{
 	int RServoMin = 10;
 	int LServoMax = 170;
 	int LServoMin = 65;
-	int RServoMidPoint = 105;
-	int LServoMidPoint = 115;
+	int RServoMidPoint = 80;
+	int LServoMidPoint = 100;
 	
 	const float MaxPitchAngle = 60;
 	float MinPitchAngle = -80;
